@@ -1,0 +1,29 @@
+---
+alwaysApply: false
+---
+# MCP Usage Strategy
+
+Always use the appropriate MCP tools automatically without waiting for explicit requests:
+
+1. **code-index**: Analyze my local codebase first
+   - Understand project structure and existing patterns
+   - Find where code is used or defined
+   - Check file dependencies and relationships
+
+2. **context7**: Get official documentation for libraries/frameworks
+   - Resolve library versions and APIs
+   - Fetch accurate setup and configuration steps
+   - Reference official examples and best practices
+
+3. **cursor-skills**: Apply specialized knowledge for specific tasks
+   - Use relevant skills for document creation (PDF, DOCX, XLSX, PPTX)
+   - Follow best practices for code patterns
+   - Leverage specialized workflows (art, analysis, etc.)
+
+## Priority Order
+- For MY code questions → code-index first
+- For library/framework usage → context7 first  
+- For specialized tasks → check skills first
+- Combine multiple MCPs when beneficial
+
+Use these tools proactively.

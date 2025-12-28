@@ -1,0 +1,227 @@
+# PRD - Sistema de Escalas MVP
+
+**Versão:** 1.0  
+**Data:** Dezembro 2025
+
+---
+
+## 1. Visão Geral
+
+Sistema web para coordenadores criarem e gerenciarem escalas de plantonistas com alertas de conflito e exportação.
+
+**Único usuário**: Coordenador (owner da organização)
+
+---
+
+## 2. Modelo de Dados
+
+### Organizacao
+```
+id, nome, criado_por, ativo, created_at
+```
+
+### Hospital
+```
+id, organizacao_id, nome, ativo, created_at
+```
+
+### Grupo
+```
+id, organizacao_id, nome, tipo, ativo, created_at
+```
+
+### Setor
+```
+id, hospital_id, nome, ativo, created_at
+```
+
+### Profissional
+```
+id, grupo_id, nome, email, telefone, ativo, created_at
+```
+
+### Escala
+```
+id, setor_id, profissional_id, data_inicio, data_fim, 
+observacoes, status (confirmado/cancelado), 
+created_by, created_at, updated_at
+```
+
+### Profile
+```
+id (FK auth.users), nome_completo, organizacao_ativa_id, created_at
+```
+
+### Relacionamentos
+```
+Organizacao (1) → (N) Hospital, Grupo
+Hospital (1) → (N) Setor
+Grupo (1) → (N) Profissional
+Setor (1) → (N) Escala
+Profissional (1) → (N) Escala
+```
+
+**Nota sobre a estrutura**:
+- **Grupos pertencem à Organização** (não ao Hospital), permitindo que profissionais de um grupo trabalhem em qualquer hospital da organização
+- **Profissionais pertencem à Organização** através do grupo, podendo ser escalados em qualquer setor de qualquer hospital da mesma organização
+- **Setores pertencem aos Hospitais**, definindo onde o trabalho será realizado
+
+---
+
+## 3. Funcionalidades
+
+### 3.1 Autenticação e Organizações
+- Registro cria profile (sem organização inicial)
+- Usuário cria organização na tela após registro
+- Usuário pode criar múltiplas organizações
+- Seletor de organização ativa no header
+- Todos os dados filtrados pela organização ativa
+
+### 3.2 Hierarquia
+- CRUD de Hospitais
+- CRUD de Grupos (ex: Fisioterapeutas, Médicos) - pertencem à organização
+- CRUD de Setores (ex: UTI 1, Emergência) - pertencem ao hospital
+
+### 3.3 Profissionais
+- Cadastrar: nome, email, telefone, grupo (da organização)
+- Listar, editar, desativar
+- Email único por organização
+- **Importante**: Profissional pertence à organização através do grupo
+- Pode ser escalado em qualquer setor de qualquer hospital da organização
+
+### 3.4 Escalas
+- **Criar**: setor + profissional + data/hora início + data/hora fim
+- **Validação de organização**: Sistema valida que profissional e setor pertencem à mesma organização ativa
+  - Profissional deve estar vinculado a um grupo da organização
+  - Setor deve pertencer a um hospital da organização
+  - Exibe erro claro se validação falhar
+- **Alerta de sobreposição**: Se profissional já tem escala nesse horário
+  - Exibe alerta visual destacado
+  - Permite salvar mesmo assim (coordenador decide)
+- **Editar**: Alterar dados da escala
+- **Cancelar**: Mudar status para "cancelado"
+- **Visualizar**: Calendário mensal/semanal
+- **Filtros**: Por hospital, setor, profissional, período
+- **Cores**: Cada profissional tem cor única no calendário
+
+### 3.5 Exportação
+- **PDF**: Escalas formatadas para impressão
+- **Excel**: Tabela com todas as escalas filtradas
+- Inclui: profissional, setor, data/hora, observações
+
+---
+
+## 4. Fluxos Principais
+
+### 4.1 Setup Inicial
+```
+1. Usuário se registra
+2. Sistema cria profile (sem organização)
+3. Usuário é direcionado para tela de criação de organização
+4. Usuário cria organização e define como ativa
+5. Usuário cria Hospitais e Setores (Setores pertencem aos Hospitais)
+6. Usuário cria Grupos (Grupos pertencem à Organização, não ao Hospital)
+7. Usuário cadastra Profissionais (vinculados a Grupos da organização)
+8. Usuário cria Escalas (Profissional pode ser escalado em qualquer Setor da organização)
+```
+
+### 4.2 Criar Escala com Conflito
+```
+1. Seleciona: setor, profissional, data/hora
+2. Sistema valida:
+   → Profissional e setor pertencem à mesma organização ativa
+   → Data de fim é posterior à data de início
+   → Verifica sobreposição de horários
+3. Se validação falhar:
+   → Exibe erro específico (ex: "Profissional e setor devem pertencer à mesma organização")
+   → Impede criação da escala
+4. Se houver conflito de horário:
+   → Exibe alerta: "João já tem plantão das 13h às 19h na UTI 2"
+   → Botões: [Salvar Mesmo Assim] [Cancelar]
+5. Coordenador decide e salva
+6. Escala aparece no calendário
+```
+
+### 4.3 Exportar Escalas
+```
+1. Aplica filtros desejados
+2. Clica "Exportar"
+3. Escolhe formato: PDF ou Excel
+4. Download automático
+5. Coordenador envia por email/WhatsApp para plantonistas
+```
+
+---
+
+## 5. User Stories
+
+**US1 - Criar Organização**  
+Como coordenador, quero me registrar e criar minha primeira organização para começar a gerenciar escalas.
+
+**US2 - Cadastrar Estrutura**  
+Como coordenador, quero criar hospitais, grupos (da organização) e setores (dos hospitais) para organizar minha operação.
+
+**US3 - Cadastrar Profissionais**  
+Como coordenador, quero cadastrar meus plantonistas em grupos da organização para poder escalá-los em qualquer hospital.
+
+**US4 - Criar Escala com Alerta**  
+Como coordenador, quero criar escalas e ser alertado sobre conflitos de horário.
+
+**US5 - Visualizar Calendário**  
+Como coordenador, quero ver todas as escalas em um calendário para ter visão completa.
+
+**US6 - Exportar Escalas**  
+Como coordenador, quero exportar escalas em PDF/Excel para enviar aos plantonistas.
+
+---
+
+## 6. Requisitos Não Funcionais
+
+- Interface responsiva (desktop, tablet, mobile)
+- Supabase Auth + RLS por organização
+- Mensagens de erro claras
+- Loading states em operações assíncronas
+- Confirmação para ações destrutivas
+
+---
+
+## 7. Stack Tecnológico
+
+**Frontend**: Next.js 14 + TypeScript + Tailwind + shadcn/ui  
+**Calendário**: React Big Calendar  
+**Backend**: Supabase (PostgreSQL + Auth + RLS)  
+**Exportação**: jsPDF (PDF) + xlsx (Excel)  
+**Deploy**: Vercel + Supabase Cloud
+
+---
+
+## 8. Roadmap (6 semanas)
+
+**Semana 1-2**: Setup + Auth + Hierarquia (Org, Hospital, Grupo, Setor)  
+**Semana 3-4**: Profissionais + Escalas + Verificação de conflitos  
+**Semana 5-6**: Calendário + Filtros + Exportação + Polimento UI
+
+---
+
+## 9. Futuras Funcionalidades
+
+- Sistema de vinculação de profissionais
+- Plantonistas visualizarem suas escalas
+- Sistema de trocas entre plantonistas
+- Notificações automáticas por email
+- Cálculos financeiros
+- Relatórios gerenciais
+
+---
+
+## 10. Métricas de Sucesso
+
+- Tempo para criar escala semanal: < 10 min
+- Conflitos não detectados: 0%
+- Tempo de exportação: < 5s
+
+---
+
+**Status**: ✅ PRD Aprovado  
+**Escopo**: MVP Ultra Simplificado  
+**Tempo**: 6 semanas de desenvolvimento
