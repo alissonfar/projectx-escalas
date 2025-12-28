@@ -35,14 +35,44 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  if (
-    !user &&
-    !request.nextUrl.pathname.startsWith('/login') &&
-    !request.nextUrl.pathname.startsWith('/auth')
-  ) {
-    // no user, potentially respond by redirecting the user to the login page
+  // Rotas públicas que não precisam de autenticação
+  const publicRoutes = ['/login', '/cadastro', '/auth']
+  const isPublicRoute = publicRoutes.some(route => 
+    request.nextUrl.pathname.startsWith(route)
+  )
+
+  // Se não tem usuário e não é rota pública, redireciona para login
+  if (!user && !isPublicRoute) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
+    return NextResponse.redirect(url)
+  }
+
+  // Se tem usuário e está em rota de auth, verifica organização
+  if (user && !isPublicRoute) {
+    // Permitir acesso à seleção de organização sempre
+    if (request.nextUrl.pathname.startsWith('/selecionar-organizacao')) {
+      return supabaseResponse
+    }
+
+    // Para outras rotas protegidas, verificar se tem organização ativa
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('organizacao_ativa_id')
+      .eq('id', user.id)
+      .single()
+
+    if (!profile?.organizacao_ativa_id) {
+      const url = request.nextUrl.clone()
+      url.pathname = '/selecionar-organizacao'
+      return NextResponse.redirect(url)
+    }
+  }
+
+  // Se está logado e tenta acessar login/cadastro, redireciona para dashboard
+  if (user && (request.nextUrl.pathname === '/login' || request.nextUrl.pathname === '/cadastro')) {
+    const url = request.nextUrl.clone()
+    url.pathname = '/dashboard'
     return NextResponse.redirect(url)
   }
 
