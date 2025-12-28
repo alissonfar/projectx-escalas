@@ -1,6 +1,22 @@
 import { z } from 'zod'
 import { verificarProfissionalSetorMesmaOrg } from '@/lib/supabase/queries'
 
+/**
+ * Schema base de validação para escalas (síncrono)
+ * 
+ * Use este schema para React Hook Form ou validações síncronas.
+ * Este schema NÃO inclui a validação assíncrona de organização.
+ * 
+ * Para validação completa (incluindo organização), use:
+ * - {@link validarEscala} - Função helper com validação assíncrona completa
+ * - {@link escalaSchemaCompleto} - Schema com validação assíncrona (requer parseAsync)
+ * 
+ * @example
+ * // Para React Hook Form
+ * const form = useForm({
+ *   resolver: zodResolver(escalaSchema)
+ * })
+ */
 export const escalaSchema = z.object({
   setor_id: z.string().uuid('Setor é obrigatório'),
   profissional_id: z.string().uuid('Profissional é obrigatório'),
@@ -13,7 +29,25 @@ export const escalaSchema = z.object({
 }, {
   message: 'Data de fim deve ser posterior à data de início',
   path: ['data_fim'],
-}).superRefine(async (data, ctx) => {
+})
+
+/**
+ * Schema completo de validação para escalas (com validação assíncrona)
+ * 
+ * ⚠️ IMPORTANTE: Este schema contém validação assíncrona.
+ * SEMPRE use .parseAsync() ao invés de .parse()
+ * 
+ * @example
+ * // ✅ CORRETO
+ * const dados = await escalaSchemaCompleto.parseAsync(formData)
+ * 
+ * @example
+ * // ❌ ERRADO - Validação assíncrona será ignorada
+ * const dados = escalaSchemaCompleto.parse(formData)
+ * 
+ * @see {@link validarEscala} - Função helper recomendada para validação
+ */
+export const escalaSchemaCompleto = escalaSchema.superRefine(async (data, ctx) => {
   // Validação assíncrona: verificar se profissional e setor pertencem à mesma organização
   const resultado = await verificarProfissionalSetorMesmaOrg(
     data.profissional_id,
