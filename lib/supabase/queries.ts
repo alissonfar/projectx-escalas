@@ -58,7 +58,7 @@ export async function getEscalasProfissionalPeriodo(
     .from('escalas')
     .select('*')
     .eq('profissional_id', profissionalId)
-    .eq('status', 'confirmado')
+    .eq('status', 'publicado')
     .lt('data_inicio', dataFim)  // data_inicio < dataFim (nova escala ainda não terminou)
     .gt('data_fim', dataInicio)  // data_fim > dataInicio (escala existente ainda não terminou)
     .order('data_inicio', { ascending: true })

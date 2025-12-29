@@ -1,23 +1,27 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Fragment } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { Dialog, Transition } from '@headlessui/react'
 import { escalaSchema, type EscalaFormData } from '@/lib/validations/escala'
 import { Label } from '@/components/ui/label'
 import { Select } from '@/components/crud/Select'
 import { DateTimePicker } from '@/components/crud/DateTimePicker'
-import { FormModal } from '@/components/crud/FormModal'
+import { Button } from '@/components/ui/button'
 import { Alert } from '@/components/ui/alert'
 import { buscarSetoresParaSelect, buscarProfissionaisParaSelect, verificarConflitos } from '@/lib/actions/escalas'
 import { format } from 'date-fns'
+import { cn } from '@/lib/utils'
 import type { Escala } from '@/types/database'
 
 interface EscalaFormProps {
   open: boolean
   onClose: () => void
   onSubmit: (data: EscalaFormData) => Promise<void>
-  initialData?: EscalaFormData & { id?: string }
+  onSalvarRascunho?: (data: EscalaFormData) => Promise<void>
+  onPublicar?: (data: EscalaFormData) => Promise<void>
+  initialData?: EscalaFormData & { id?: string; status?: 'rascunho' | 'publicado' | 'cancelado' }
   loading?: boolean
 }
 
@@ -25,6 +29,8 @@ export function EscalaForm({
   open,
   onClose,
   onSubmit,
+  onSalvarRascunho,
+  onPublicar,
   initialData,
   loading = false
 }: EscalaFormProps) {
@@ -60,7 +66,7 @@ export function EscalaForm({
       data_inicio: '',
       data_fim: '',
       observacoes: '',
-      status: 'confirmado'
+      status: 'rascunho'
     }
   })
 
@@ -89,16 +95,96 @@ export function EscalaForm({
     }
   })
 
+  const handleSalvarRascunho = handleSubmit(async (data) => {
+    if (onSalvarRascunho) {
+      await onSalvarRascunho(data)
+      if (!initialData) {
+        reset()
+        setConflitos([])
+      }
+    } else {
+      // Fallback para onSubmit se onSalvarRascunho não for fornecido
+      await onSubmit(data)
+    }
+  })
+
+  const handlePublicar = handleSubmit(async (data) => {
+    if (onPublicar) {
+      await onPublicar(data)
+      if (!initialData) {
+        reset()
+        setConflitos([])
+      }
+    } else {
+      // Fallback para onSubmit se onPublicar não for fornecido
+      await onSubmit(data)
+    }
+  })
+
+  const isRascunho = initialData?.status === 'rascunho'
+  const isPublicado = initialData?.status === 'publicado'
+  const podePublicar = isRascunho || !initialData // Pode publicar se for rascunho ou nova escala
+
   return (
-    <FormModal
-      open={open}
-      onClose={onClose}
-      title={initialData ? 'Editar Escala' : 'Nova Escala'}
-      onSubmit={handleFormSubmit}
-      submitLabel={initialData ? 'Atualizar' : 'Criar'}
-      loading={loading}
-      size="lg"
-    >
+    <Transition show={open} as={Fragment}>
+      <Dialog 
+        as="div" 
+        className="relative z-50" 
+        onClose={(value) => {
+          if (!loading && value) {
+            onClose()
+          }
+        }}
+      >
+        <Transition.Child
+          as={Fragment}
+          enter="ease-out duration-300"
+          enterFrom="opacity-0"
+          enterTo="opacity-100"
+          leave="ease-in duration-200"
+          leaveFrom="opacity-100"
+          leaveTo="opacity-0"
+        >
+          <div className="fixed inset-0 bg-black/25 dark:bg-black/50" />
+        </Transition.Child>
+
+        <div className="fixed inset-0 overflow-y-auto">
+          <div className="flex min-h-full items-center justify-center p-4">
+            <Transition.Child
+              as={Fragment}
+              enter="ease-out duration-300"
+              enterFrom="opacity-0 scale-95"
+              enterTo="opacity-100 scale-100"
+              leave="ease-in duration-200"
+              leaveFrom="opacity-100 scale-100"
+              leaveTo="opacity-0 scale-95"
+            >
+              <Dialog.Panel 
+                className={cn(
+                  'w-full transform overflow-hidden rounded-2xl bg-white dark:bg-gray-800 shadow-xl transition-all',
+                  'max-w-2xl'
+                )}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <form 
+                  onSubmit={(e) => {
+                    e.stopPropagation()
+                    const result = handleFormSubmit(e)
+                    if (result instanceof Promise) {
+                      result.catch((error) => {
+                        console.error('Erro no onSubmit:', error)
+                      })
+                    }
+                  }} 
+                  noValidate
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div className="p-6">
+                    <Dialog.Title className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+                      {initialData ? 'Editar Escala' : 'Nova Escala'}
+                    </Dialog.Title>
+                    
+                    <div className="space-y-4">
       {/* Alerta de Conflitos */}
       {conflitos.length > 0 && (
         <Alert className="bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800">
@@ -190,20 +276,107 @@ export function EscalaForm({
         )}
       </div>
 
-      <div>
-        <Select
-          label="Status"
-          required
-          options={[
-            { value: 'confirmado', label: 'Confirmado' },
-            { value: 'cancelado', label: 'Cancelado' }
-          ]}
-          value={watch('status') || 'confirmado'}
-          onChange={(value) => setValue('status', value as 'confirmado' | 'cancelado')}
-          disabled={loading}
-        />
-      </div>
-    </FormModal>
+                      {/* Status não é editável no formulário - será gerenciado via ações de publicação */}
+                      {/* Novas escalas começam como 'rascunho' por padrão */}
+                      {isPublicado && (
+                        <Alert className="bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800">
+                          <p className="text-sm text-blue-800 dark:text-blue-400">
+                            ℹ️ Esta escala está publicada. Para editá-la, você precisará despublicá-la primeiro.
+                          </p>
+                        </Alert>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex gap-3 justify-between px-6 py-4 bg-gray-50 dark:bg-gray-900/50 border-t border-gray-200 dark:border-gray-700">
+                    <div className="flex gap-2">
+                      {/* Botão Salvar Rascunho - sempre visível */}
+                      {onSalvarRascunho && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={handleSalvarRascunho}
+                          disabled={loading || isPublicado}
+                          className="min-w-[140px]"
+                        >
+                          {loading ? (
+                            <span className="flex items-center gap-2">
+                              <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                              </svg>
+                              Salvando...
+                            </span>
+                          ) : (
+                            '💾 Salvar Rascunho'
+                          )}
+                        </Button>
+                      )}
+                      
+                      {/* Botão Publicar - visível apenas para rascunhos ou novas escalas */}
+                      {onPublicar && podePublicar && (
+                        <Button
+                          type="button"
+                          variant="default"
+                          onClick={handlePublicar}
+                          disabled={loading}
+                          className="min-w-[140px] bg-green-600 hover:bg-green-700 text-white font-semibold shadow-sm hover:shadow-md transition-shadow"
+                        >
+                          {loading ? (
+                            <span className="flex items-center gap-2">
+                              <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                              </svg>
+                              Publicando...
+                            </span>
+                          ) : (
+                            '📢 Publicar'
+                          )}
+                        </Button>
+                      )}
+                    </div>
+                    
+                    <div className="flex gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={onClose}
+                        disabled={loading}
+                        className="min-w-[100px]"
+                      >
+                        Cancelar
+                      </Button>
+                      {/* Botão padrão de submit - usado quando não há callbacks específicos */}
+                      {(!onSalvarRascunho && !onPublicar) && (
+                        <Button
+                          type="submit"
+                          variant="default"
+                          disabled={loading}
+                          className="min-w-[100px] font-semibold shadow-sm hover:shadow-md transition-shadow"
+                        >
+                          {loading ? (
+                            <span className="flex items-center gap-2">
+                              <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                              </svg>
+                              Salvando...
+                            </span>
+                          ) : (
+                            initialData ? 'Atualizar' : 'Criar'
+                          )}
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                </form>
+              </Dialog.Panel>
+            </Transition.Child>
+          </div>
+        </div>
+      </Dialog>
+    </Transition>
   )
 }
 

@@ -99,7 +99,9 @@ export type Profissional = {
   created_at: string
 }
 
-export type EscalaStatus = 'confirmado' | 'cancelado'
+export type EscalaStatus = 'rascunho' | 'publicado' | 'cancelado'
+
+export type EscalaTurno = 'manha' | 'tarde' | 'noite' | 'integral'
 
 export type Escala = {
   id: string
@@ -109,6 +111,9 @@ export type Escala = {
   data_fim: string
   observacoes: string | null
   status: EscalaStatus
+  turno: EscalaTurno | null
+  publicado_em: string | null
+  publicado_por: string | null
   created_by: string
   created_at: string
   updated_at: string

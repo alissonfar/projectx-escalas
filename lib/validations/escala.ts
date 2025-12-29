@@ -23,7 +23,8 @@ export const escalaSchema = z.object({
   data_inicio: z.string().datetime('Data/hora de início inválida'),
   data_fim: z.string().datetime('Data/hora de fim inválida'),
   observacoes: z.string().nullable().optional(),
-  status: z.enum(['confirmado', 'cancelado']).default('confirmado'),
+  status: z.enum(['rascunho', 'publicado', 'cancelado']).default('rascunho'),
+  turno: z.enum(['manha', 'tarde', 'noite', 'integral']).nullable().optional(),
 }).refine((data) => {
   return new Date(data.data_fim) > new Date(data.data_inicio)
 }, {

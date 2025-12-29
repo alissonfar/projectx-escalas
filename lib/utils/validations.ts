@@ -66,7 +66,7 @@ export async function canDeactivateSetor(setorId: string): Promise<ValidationRes
       .from('escalas')
       .select('*', { count: 'exact', head: true })
       .eq('setor_id', setorId)
-      .eq('status', 'confirmado')
+      .eq('status', 'publicado')
       .gte('data_fim', new Date().toISOString())
     
     return {
@@ -139,7 +139,7 @@ export async function canDeactivateProfissional(profissionalId: string): Promise
       .from('escalas')
       .select('*', { count: 'exact', head: true })
       .eq('profissional_id', profissionalId)
-      .eq('status', 'confirmado')
+      .eq('status', 'publicado')
       .gt('data_inicio', new Date().toISOString())
     
     return {
