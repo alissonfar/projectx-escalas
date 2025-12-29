@@ -29,6 +29,13 @@ export const escalaSchema = z.object({
 }, {
   message: 'Data de fim deve ser posterior à data de início',
   path: ['data_fim'],
+}).refine((data) => {
+  const duracao = new Date(data.data_fim).getTime() - new Date(data.data_inicio).getTime()
+  const horas = duracao / (1000 * 60 * 60)
+  return horas >= 1 && horas <= 24
+}, {
+  message: 'Escala deve ter entre 1 e 24 horas de duração',
+  path: ['data_fim'],
 })
 
 /**

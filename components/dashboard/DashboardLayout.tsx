@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import type { User } from '@supabase/supabase-js'
 import type { Organizacao } from '@/types/database'
@@ -20,6 +20,7 @@ export default function DashboardLayout({
   organizacoes 
 }: DashboardLayoutProps) {
   const router = useRouter()
+  const pathname = usePathname()
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const [orgSelectorOpen, setOrgSelectorOpen] = useState(false)
@@ -72,7 +73,8 @@ export default function DashboardLayout({
         </svg>
       ),
       label: 'Dashboard',
-      active: true,
+      href: '/dashboard',
+      active: false,
     },
     {
       icon: (
@@ -81,6 +83,7 @@ export default function DashboardLayout({
         </svg>
       ),
       label: 'Escalas',
+      href: '/escalas',
       active: false,
     },
     {
@@ -90,6 +93,7 @@ export default function DashboardLayout({
         </svg>
       ),
       label: 'Profissionais',
+      href: '/profissionais',
       active: false,
     },
     {
@@ -99,6 +103,7 @@ export default function DashboardLayout({
         </svg>
       ),
       label: 'Hospitais',
+      href: '/hospitais',
       active: false,
     },
     {
@@ -108,6 +113,7 @@ export default function DashboardLayout({
         </svg>
       ),
       label: 'Setores',
+      href: '/setores',
       active: false,
     },
     {
@@ -117,6 +123,7 @@ export default function DashboardLayout({
         </svg>
       ),
       label: 'Grupos',
+      href: '/grupos',
       active: false,
     },
   ]
@@ -229,26 +236,31 @@ export default function DashboardLayout({
           }`}
         >
           <nav className="flex flex-col items-center py-4 gap-1">
-            {sidebarItems.map((item, index) => (
-              <button
-                key={index}
-                className={`w-12 h-12 rounded-lg flex items-center justify-center transition-colors relative group ${
-                  item.active
-                    ? 'bg-white/20 text-white'
-                    : 'text-white/70 hover:bg-white/10 hover:text-white'
-                }`}
-                title={item.label}
-              >
-                {item.icon}
-                {item.active && (
-                  <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-white rounded-r-full"></div>
-                )}
-                {/* Tooltip */}
-                <div className="absolute left-full ml-2 px-3 py-2 bg-gray-900 dark:bg-gray-700 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50">
-                  {item.label}
-                </div>
-              </button>
-            ))}
+            {sidebarItems.map((item, index) => {
+              const isActive = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href))
+              
+              return (
+                <a
+                  key={index}
+                  href={item.href}
+                  className={`w-12 h-12 rounded-lg flex items-center justify-center transition-colors relative group ${
+                    isActive
+                      ? 'bg-white/20 text-white'
+                      : 'text-white/70 hover:bg-white/10 hover:text-white'
+                  }`}
+                  title={item.label}
+                >
+                  {item.icon}
+                  {isActive && (
+                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-white rounded-r-full"></div>
+                  )}
+                  {/* Tooltip */}
+                  <div className="absolute left-full ml-2 px-3 py-2 bg-gray-900 dark:bg-gray-700 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50">
+                    {item.label}
+                  </div>
+                </a>
+              )
+            })}
 
             {/* Settings no rodapé */}
             <div className="mt-auto">
