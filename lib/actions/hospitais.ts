@@ -52,7 +52,7 @@ export async function criarHospital(data: HospitalFormData): Promise<ActionResul
       return { success: false, error: 'Erro ao criar hospital' }
     }
 
-    revalidatePath('/dashboard/hospitais')
+    revalidatePath('/hospitais')
     return { success: true, message: 'Hospital criado com sucesso' }
   } catch (error: any) {
     if (error.errors) {
@@ -95,7 +95,7 @@ export async function atualizarHospital(id: string, data: HospitalFormData): Pro
       return { success: false, error: 'Erro ao atualizar hospital' }
     }
 
-    revalidatePath('/dashboard/hospitais')
+    revalidatePath('/hospitais')
     return { success: true, message: 'Hospital atualizado com sucesso' }
   } catch (error: any) {
     if (error.errors) {
@@ -129,7 +129,7 @@ export async function desativarHospital(id: string): Promise<ActionResult> {
       return { success: false, error: 'Erro ao desativar hospital' }
     }
 
-    revalidatePath('/dashboard/hospitais')
+    revalidatePath('/hospitais')
     return { success: true, message: 'Hospital desativado com sucesso' }
   } catch (error) {
     return { success: false, error: 'Erro ao desativar hospital' }

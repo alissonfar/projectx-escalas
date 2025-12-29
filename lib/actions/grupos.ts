@@ -51,7 +51,7 @@ export async function criarGrupo(data: GrupoFormData): Promise<ActionResult> {
       return { success: false, error: 'Erro ao criar grupo' }
     }
 
-    revalidatePath('/dashboard/grupos')
+    revalidatePath('/grupos')
     return { success: true, message: 'Grupo criado com sucesso' }
   } catch (error: any) {
     if (error.errors) {
@@ -94,7 +94,7 @@ export async function atualizarGrupo(id: string, data: GrupoFormData): Promise<A
       return { success: false, error: 'Erro ao atualizar grupo' }
     }
 
-    revalidatePath('/dashboard/grupos')
+    revalidatePath('/grupos')
     return { success: true, message: 'Grupo atualizado com sucesso' }
   } catch (error: any) {
     if (error.errors) {
@@ -126,7 +126,7 @@ export async function desativarGrupo(id: string): Promise<ActionResult> {
       return { success: false, error: 'Erro ao desativar grupo' }
     }
 
-    revalidatePath('/dashboard/grupos')
+    revalidatePath('/grupos')
     return { success: true, message: 'Grupo desativado com sucesso' }
   } catch (error) {
     return { success: false, error: 'Erro ao desativar grupo' }

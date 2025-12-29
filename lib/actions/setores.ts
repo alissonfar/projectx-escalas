@@ -66,7 +66,7 @@ export async function criarSetor(data: SetorFormData): Promise<ActionResult> {
       return { success: false, error: 'Erro ao criar setor' }
     }
 
-    revalidatePath('/dashboard/setores')
+    revalidatePath('/setores')
     return { success: true, message: 'Setor criado com sucesso' }
   } catch (error: any) {
     if (error.errors) {
@@ -134,7 +134,7 @@ export async function atualizarSetor(id: string, data: SetorFormData): Promise<A
       return { success: false, error: 'Erro ao atualizar setor' }
     }
 
-    revalidatePath('/dashboard/setores')
+    revalidatePath('/setores')
     return { success: true, message: 'Setor atualizado com sucesso' }
   } catch (error: any) {
     if (error.errors) {
@@ -168,7 +168,7 @@ export async function desativarSetor(id: string): Promise<ActionResult> {
       return { success: false, error: 'Erro ao desativar setor' }
     }
 
-    revalidatePath('/dashboard/setores')
+    revalidatePath('/setores')
     return { success: true, message: 'Setor desativado com sucesso' }
   } catch (error) {
     return { success: false, error: 'Erro ao desativar setor' }

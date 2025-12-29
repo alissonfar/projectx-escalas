@@ -62,7 +62,7 @@ export async function criarEscala(data: EscalaFormData): Promise<ActionResult> {
       return { success: false, error: 'Erro ao criar escala' }
     }
 
-    revalidatePath('/dashboard/escalas')
+    revalidatePath('/escalas')
     
     if (conflitos.length > 0) {
       return {
@@ -126,7 +126,7 @@ export async function atualizarEscala(id: string, data: EscalaFormData): Promise
       return { success: false, error: 'Erro ao atualizar escala' }
     }
 
-    revalidatePath('/dashboard/escalas')
+    revalidatePath('/escalas')
     
     if (conflitosSemEsta.length > 0) {
       return {
@@ -180,7 +180,7 @@ export async function cancelarEscala(id: string): Promise<ActionResult> {
       return { success: false, error: 'Erro ao cancelar escala' }
     }
 
-    revalidatePath('/dashboard/escalas')
+    revalidatePath('/escalas')
     return { success: true, message: 'Escala cancelada com sucesso' }
   } catch (error) {
     return { success: false, error: 'Erro ao cancelar escala' }

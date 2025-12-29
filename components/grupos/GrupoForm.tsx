@@ -32,12 +32,14 @@ export function GrupoForm({
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isValid },
     reset,
     setValue,
-    watch
+    watch,
+    trigger
   } = useForm<GrupoFormData>({
     resolver: zodResolver(grupoSchema),
+    mode: 'onChange', // Validação em tempo real
     defaultValues: initialData || {
       nome: '',
       tipo: '' as any,
@@ -47,12 +49,23 @@ export function GrupoForm({
 
   const tipo = watch('tipo')
 
-  const handleFormSubmit = handleSubmit(async (data) => {
-    await onSubmit(data)
-    if (!initialData) {
-      reset()
+  const handleFormSubmit = handleSubmit(
+    async (data) => {
+      try {
+        await onSubmit(data)
+        if (!initialData) {
+          reset()
+        }
+      } catch (error) {
+        console.error('Erro ao submeter formulário:', error)
+        // Erro será tratado pelo componente pai
+      }
+    },
+    (errors) => {
+      // Validação falhou - erros já são exibidos automaticamente pelo react-hook-form
+      console.error('Erros de validação:', errors)
     }
-  })
+  )
 
   return (
     <FormModal
@@ -87,10 +100,18 @@ export function GrupoForm({
           required
           options={tipoOptions}
           value={tipo || ''}
-          onChange={(value) => setValue('tipo', value as any)}
+          onChange={(value) => {
+            setValue('tipo', value as any, { shouldValidate: true })
+            trigger('tipo')
+          }}
           error={errors.tipo?.message}
           disabled={loading}
         />
+        {errors.tipo && (
+          <p className="text-sm text-red-600 dark:text-red-400 mt-1">
+            {errors.tipo.message}
+          </p>
+        )}
       </div>
     </FormModal>
   )

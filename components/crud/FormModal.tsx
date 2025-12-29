@@ -10,7 +10,7 @@ interface FormModalProps {
   onClose: () => void
   title: string
   children: React.ReactNode
-  onSubmit: () => void | Promise<void>
+  onSubmit: (e: React.FormEvent) => void | Promise<void>
   submitLabel?: string
   cancelLabel?: string
   loading?: boolean
@@ -35,14 +35,18 @@ export function FormModal({
   loading = false,
   size = 'md'
 }: FormModalProps) {
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    await onSubmit()
-  }
-
   return (
     <Transition show={open} as={Fragment}>
-      <Dialog as="div" className="relative z-50" onClose={onClose}>
+      <Dialog 
+        as="div" 
+        className="relative z-50" 
+        onClose={(value) => {
+          // Não fechar durante loading
+          if (!loading && value) {
+            onClose()
+          }
+        }}
+      >
         <Transition.Child
           as={Fragment}
           enter="ease-out duration-300"
@@ -66,11 +70,26 @@ export function FormModal({
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <Dialog.Panel className={cn(
-                'w-full transform overflow-hidden rounded-2xl bg-white dark:bg-gray-800 shadow-xl transition-all',
-                sizeClasses[size]
-              )}>
-                <form onSubmit={handleSubmit}>
+              <Dialog.Panel 
+                className={cn(
+                  'w-full transform overflow-hidden rounded-2xl bg-white dark:bg-gray-800 shadow-xl transition-all',
+                  sizeClasses[size]
+                )}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <form 
+                  onSubmit={(e) => {
+                    e.stopPropagation()
+                    const result = onSubmit(e)
+                    if (result instanceof Promise) {
+                      result.catch((error) => {
+                        console.error('Erro no onSubmit:', error)
+                      })
+                    }
+                  }} 
+                  noValidate
+                  onClick={(e) => e.stopPropagation()}
+                >
                   <div className="p-6">
                     <Dialog.Title className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
                       {title}
@@ -93,10 +112,21 @@ export function FormModal({
                     </Button>
                     <Button
                       type="submit"
+                      variant="default"
                       disabled={loading}
-                      className="min-w-[100px]"
+                      className="min-w-[100px] font-semibold shadow-sm hover:shadow-md transition-shadow"
                     >
-                      {loading ? 'Salvando...' : submitLabel}
+                      {loading ? (
+                        <span className="flex items-center gap-2">
+                          <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                          Salvando...
+                        </span>
+                      ) : (
+                        submitLabel
+                      )}
                     </Button>
                   </div>
                 </form>

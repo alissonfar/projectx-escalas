@@ -6,7 +6,8 @@ export const grupoSchema = z.object({
   tipo: z.enum(TIPOS_GRUPO_PERMITIDOS, {
     errorMap: () => ({ message: 'Tipo inválido. Selecione um tipo válido.' })
   }),
-  organizacao_id: z.string().uuid('Organização é obrigatória'),
+  // organizacao_id é preenchido automaticamente no servidor, então é opcional no frontend
+  organizacao_id: z.union([z.string(), z.literal('')]).optional(),
 })
 
 export type GrupoFormData = z.infer<typeof grupoSchema>

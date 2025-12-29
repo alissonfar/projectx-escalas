@@ -71,7 +71,7 @@ export async function criarProfissional(data: ProfissionalFormData): Promise<Act
       return { success: false, error: 'Erro ao criar profissional' }
     }
 
-    revalidatePath('/dashboard/profissionais')
+    revalidatePath('/profissionais')
     return { success: true, message: 'Profissional criado com sucesso' }
   } catch (error: any) {
     if (error.errors) {
@@ -143,7 +143,7 @@ export async function atualizarProfissional(id: string, data: ProfissionalFormDa
       return { success: false, error: 'Erro ao atualizar profissional' }
     }
 
-    revalidatePath('/dashboard/profissionais')
+    revalidatePath('/profissionais')
     return { success: true, message: 'Profissional atualizado com sucesso' }
   } catch (error: any) {
     if (error.errors) {
@@ -175,7 +175,7 @@ export async function desativarProfissional(id: string): Promise<ActionResult> {
       return { success: false, error: 'Erro ao desativar profissional' }
     }
 
-    revalidatePath('/dashboard/profissionais')
+    revalidatePath('/profissionais')
     return { success: true, message: 'Profissional desativado com sucesso' }
   } catch (error) {
     return { success: false, error: 'Erro ao desativar profissional' }
