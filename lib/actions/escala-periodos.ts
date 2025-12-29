@@ -110,7 +110,7 @@ export async function criarOuObterPeriodo(
   setorId: string,
   mes: number,
   ano: number
-): Promise<{ success: boolean; periodoId?: string; error?: string }> {
+): Promise<{ success: boolean; periodoId?: string; estado?: EscalaPeriodoEstado; error?: string }> {
   try {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
@@ -125,10 +125,10 @@ export async function criarOuObterPeriodo(
       return { success: false, error: escalaResult.error || 'Erro ao obter escala' }
     }
     
-    // 2. Buscar período existente (versão mais recente)
+    // 2. Buscar período existente (versão mais recente) COM ESTADO
     const { data: periodoExistente, error: fetchError } = await supabase
       .from('escala_periodos')
-      .select('id')
+      .select('id, estado')  // ✅ Incluir estado
       .eq('escala_id', escalaResult.escalaId)
       .eq('mes', mes)
       .eq('ano', ano)
@@ -137,7 +137,11 @@ export async function criarOuObterPeriodo(
       .maybeSingle()
     
     if (periodoExistente) {
-      return { success: true, periodoId: periodoExistente.id }
+      return { 
+        success: true, 
+        periodoId: periodoExistente.id,
+        estado: periodoExistente.estado as EscalaPeriodoEstado  // ✅ Retornar estado real
+      }
     }
     
     // 3. Se não existe, criar versão 1 como pre_escala
@@ -151,7 +155,7 @@ export async function criarOuObterPeriodo(
         estado: 'pre_escala',
         created_by: user.id
       })
-      .select('id')
+      .select('id, estado')  // ✅ Incluir estado
       .single()
     
     if (createError || !novoPeriodo) {
@@ -160,7 +164,11 @@ export async function criarOuObterPeriodo(
     }
     
     revalidatePath('/escalas')
-    return { success: true, periodoId: novoPeriodo.id }
+    return { 
+      success: true, 
+      periodoId: novoPeriodo.id,
+      estado: novoPeriodo.estado as EscalaPeriodoEstado  // ✅ Retornar estado do novo
+    }
   } catch (error) {
     console.error('Erro ao criar/obter período:', error)
     return { success: false, error: 'Erro ao processar período' }

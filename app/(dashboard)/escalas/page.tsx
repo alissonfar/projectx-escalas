@@ -31,11 +31,13 @@ export default async function EscalasPage() {
   const anoAtual = hoje.getFullYear()
 
   return (
-    <EscalasClient
-      setoresIniciais={setores}
-      mesInicial={mesAtual}
-      anoInicial={anoAtual}
-    />
+    <div className="h-screen flex flex-col">
+      <EscalasClient
+        setoresIniciais={setores}
+        mesInicial={mesAtual}
+        anoInicial={anoAtual}
+      />
+    </div>
   )
 }
 

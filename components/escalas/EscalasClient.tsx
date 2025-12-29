@@ -1,10 +1,11 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { ScaleGrid } from './grid/ScaleGrid'
 import { MonthSelector } from './filters/MonthSelector'
 import { StateIndicator } from './filters/StateIndicator'
+import { ViewModeSelector } from './filters/ViewModeSelector'
 import { AddShiftModal, type ShiftFormData } from './forms/AddShiftModal'
 import { 
   criarOuObterPeriodo,
@@ -18,6 +19,7 @@ import {
   removerAlocacao,
   buscarProfissionaisParaSelect
 } from '@/lib/actions/escala-alocacoes'
+import { getWeeksInMonth, getDaysForVisualization, type VisualizacaoModo } from '@/lib/utils/calendar'
 import type { Setor, Hospital, EscalaAlocacaoCompleta, EscalaPeriodoEstado } from '@/types/database'
 
 interface EscalasClientProps {
@@ -33,6 +35,21 @@ export function EscalasClient({ setoresIniciais, mesInicial, anoInicial }: Escal
   const [mes, setMes] = useState(mesInicial)
   const [ano, setAno] = useState(anoInicial)
   const [setores] = useState(setoresIniciais)
+  const [modo, setModo] = useState<VisualizacaoModo>('mensal')
+  const [semanaAtual, setSemanaAtual] = useState(1)
+  
+  // Calcular semanas e dias baseado no modo
+  const semanas = useMemo(
+    () => getWeeksInMonth(mes, ano),
+    [mes, ano]
+  )
+  
+  const totalSemanas = semanas.length
+  
+  const dias = useMemo(
+    () => getDaysForVisualization(modo, mes, ano, semanaAtual),
+    [modo, mes, ano, semanaAtual]
+  )
   
   // Estado dos dados
   const [periodosPorSetor, setPeriodosPorSetor] = useState<Record<string, { id: string; estado: EscalaPeriodoEstado }>>({})
@@ -60,6 +77,11 @@ export function EscalasClient({ setoresIniciais, mesInicial, anoInicial }: Escal
     carregarProfissionais()
   }, [])
   
+  // Resetar semana quando mudar mês
+  useEffect(() => {
+    setSemanaAtual(1)
+  }, [mes, ano])
+  
   const carregarProfissionais = async () => {
     const profs = await buscarProfissionaisParaSelect()
     setProfissionais(profs)
@@ -82,7 +104,7 @@ export function EscalasClient({ setoresIniciais, mesInicial, anoInicial }: Escal
           
           periodos[setor.id] = {
             id: periodoResult.periodoId,
-            estado: 'pre_escala' // Sempre começa como pre_escala
+            estado: periodoResult.estado || 'pre_escala'  // ✅ Usar estado real do banco
           }
           alocacoes[setor.id] = alocacoesDoSetor
         }
@@ -253,56 +275,70 @@ export function EscalasClient({ setoresIniciais, mesInicial, anoInicial }: Escal
     : 'pre_escala'
   
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Escalas</h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-1">
-            Gerencie as escalas de plantão por período
-          </p>
+    <div className="flex flex-col h-full">
+      {/* Header fixo */}
+      <div className="flex-shrink-0 space-y-4 p-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Escalas</h1>
+            <p className="text-gray-600 dark:text-gray-400 mt-1">
+              Gerencie as escalas de plantão por período
+            </p>
+          </div>
+        </div>
+        
+        {/* Mensagens */}
+        {error && (
+          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+            <p className="text-sm text-red-800 dark:text-red-400">{error}</p>
+          </div>
+        )}
+        {success && (
+          <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
+            <p className="text-sm text-green-800 dark:text-green-400">{success}</p>
+          </div>
+        )}
+        
+        {/* Controles */}
+        <div className="flex items-center justify-between bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+          <div className="flex items-center gap-4">
+            <MonthSelector mes={mes} ano={ano} onChange={handleMudaMes} />
+            <ViewModeSelector
+              modo={modo}
+              semana={semanaAtual}
+              totalSemanas={totalSemanas}
+              onChange={setModo}
+              onSemanaChange={setSemanaAtual}
+            />
+          </div>
+          <StateIndicator
+            estado={estadoGeral}
+            onPublicar={handlePublicar}
+            onDespublicar={handleDespublicar}
+            loading={loading}
+          />
         </div>
       </div>
       
-      {/* Mensagens */}
-      {error && (
-        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
-          <p className="text-sm text-red-800 dark:text-red-400">{error}</p>
-        </div>
-      )}
-      {success && (
-        <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
-          <p className="text-sm text-green-800 dark:text-green-400">{success}</p>
-        </div>
-      )}
-      
-      {/* Controles */}
-      <div className="flex items-center justify-between bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
-        <MonthSelector mes={mes} ano={ano} onChange={handleMudaMes} />
-        <StateIndicator
-          estado={estadoGeral}
-          onPublicar={handlePublicar}
-          onDespublicar={handleDespublicar}
-          loading={loading}
-        />
+      {/* Grid ocupa espaço restante (full-screen) */}
+      <div className="flex-1 overflow-hidden px-6 pb-6">
+        {loading && Object.keys(alocacoesPorSetor).length === 0 ? (
+          <div className="flex items-center justify-center h-full">
+            <p className="text-gray-500 dark:text-gray-400">Carregando...</p>
+          </div>
+        ) : (
+          <ScaleGrid
+            setores={setores}
+            mes={mes}
+            ano={ano}
+            dias={dias}
+            alocacoesPorSetor={alocacoesPorSetor}
+            estado={estadoGeral}
+            onAddShift={handleAddShift}
+            onEditShift={handleEditShift}
+          />
+        )}
       </div>
-      
-      {/* Grid */}
-      {loading && Object.keys(alocacoesPorSetor).length === 0 ? (
-        <div className="text-center py-12">
-          <p className="text-gray-500 dark:text-gray-400">Carregando...</p>
-        </div>
-      ) : (
-        <ScaleGrid
-          setores={setores}
-          mes={mes}
-          ano={ano}
-          alocacoesPorSetor={alocacoesPorSetor}
-          estado={estadoGeral}
-          onAddShift={handleAddShift}
-          onEditShift={handleEditShift}
-        />
-      )}
       
       {/* Modal */}
       <AddShiftModal
