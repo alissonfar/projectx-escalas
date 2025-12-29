@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { EscalaList } from '@/components/escalas/EscalaList'
-import { buscarEscalas } from '@/lib/actions/escalas'
+import { EscalasClient } from '@/components/escalas/EscalasClient'
+import { buscarSetoresOrganizacao } from '@/lib/actions/escala-periodos'
 
 export default async function EscalasPage() {
   const supabase = await createClient()
@@ -22,8 +22,20 @@ export default async function EscalasPage() {
     redirect('/selecionar-organizacao')
   }
 
-  const escalas = await buscarEscalas()
+  // Buscar setores da organização
+  const setores = await buscarSetoresOrganizacao()
+  
+  // Mês e ano atuais
+  const hoje = new Date()
+  const mesAtual = hoje.getMonth() + 1 // 1-12
+  const anoAtual = hoje.getFullYear()
 
-  return <EscalaList escalas={escalas} />
+  return (
+    <EscalasClient
+      setoresIniciais={setores}
+      mesInicial={mesAtual}
+      anoInicial={anoAtual}
+    />
+  )
 }
 

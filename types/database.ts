@@ -38,6 +38,16 @@ export type Database = {
         Insert: Omit<Escala, 'id' | 'created_at' | 'updated_at'>
         Update: Partial<Omit<Escala, 'id' | 'created_at' | 'updated_at'>>
       }
+      escala_periodos: {
+        Row: EscalaPeriodo
+        Insert: Omit<EscalaPeriodo, 'id' | 'created_at' | 'updated_at'>
+        Update: Partial<Omit<EscalaPeriodo, 'id' | 'created_at' | 'updated_at'>>
+      }
+      escala_alocacoes: {
+        Row: EscalaAlocacao
+        Insert: Omit<EscalaAlocacao, 'id' | 'created_at' | 'updated_at'>
+        Update: Partial<Omit<EscalaAlocacao, 'id' | 'created_at' | 'updated_at'>>
+      }
       profiles: {
         Row: Profile
         Insert: Omit<Profile, 'created_at'>
@@ -99,21 +109,44 @@ export type Profissional = {
   created_at: string
 }
 
-export type EscalaStatus = 'rascunho' | 'publicado' | 'cancelado'
-
-export type EscalaTurno = 'manha' | 'tarde' | 'noite' | 'integral'
-
+// NOVO MODELO: Escala como container contínuo do setor
 export type Escala = {
   id: string
   setor_id: string
+  created_at: string
+  updated_at: string
+}
+
+// Estado do período (pré-escala ou publicada)
+export type EscalaPeriodoEstado = 'pre_escala' | 'publicada'
+
+// Período mensal versionado
+export type EscalaPeriodo = {
+  id: string
+  escala_id: string
+  mes: number // 1-12
+  ano: number // ex: 2025
+  versao: number
+  estado: EscalaPeriodoEstado
+  publicado_em: string | null
+  publicado_por: string | null
+  created_by: string
+  created_at: string
+  updated_at: string
+}
+
+// Turnos possíveis
+export type EscalaTurno = 'manha' | 'tarde' | 'noite' | 'integral'
+
+// Alocação de profissional dentro de um período
+export type EscalaAlocacao = {
+  id: string
+  periodo_id: string
   profissional_id: string
   data_inicio: string
   data_fim: string
+  turno: EscalaTurno
   observacoes: string | null
-  status: EscalaStatus
-  turno: EscalaTurno | null
-  publicado_em: string | null
-  publicado_por: string | null
   created_by: string
   created_at: string
   updated_at: string
@@ -127,9 +160,25 @@ export type Profile = {
 }
 
 // Tipos com relacionamentos (para queries com joins)
-export type EscalaComRelacoes = Escala & {
-  setor: Setor
-  profissional: Profissional
+export type EscalaComSetor = Escala & {
+  setor: Setor & {
+    hospital: Hospital
+  }
+}
+
+export type EscalaPeriodoCompleto = EscalaPeriodo & {
+  escala: Escala & {
+    setor: Setor & {
+      hospital: Hospital
+    }
+  }
+  alocacoes?: EscalaAlocacaoCompleta[]
+}
+
+export type EscalaAlocacaoCompleta = EscalaAlocacao & {
+  profissional: Profissional & {
+    grupo: Grupo
+  }
 }
 
 export type ProfissionalComGrupo = Profissional & {
