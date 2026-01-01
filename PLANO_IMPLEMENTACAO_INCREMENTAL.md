@@ -719,3 +719,5 @@ export function ScaleGrid({ setores, mes, ano, modo, dias, ... }: ScaleGridProps
 
 **Com estes ajustes, a aplicação estará 100% conforme o modelo conceitual.**
 
+
+

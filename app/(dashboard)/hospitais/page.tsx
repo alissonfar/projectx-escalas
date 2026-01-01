@@ -30,3 +30,5 @@ export default async function HospitaisPage() {
   return <HospitalList hospitais={hospitais} />
 }
 
+
+

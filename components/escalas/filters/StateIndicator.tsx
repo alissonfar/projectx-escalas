@@ -56,3 +56,5 @@ export function StateIndicator({ estado, onPublicar, onDespublicar, loading }: S
 }
 
 
+
+

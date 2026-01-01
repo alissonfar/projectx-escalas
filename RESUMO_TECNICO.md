@@ -552,3 +552,5 @@ O usuário agora pode:
 **Versão:** 1.0 - Implementação Inicial Completa  
 **Linguagem:** Portuguese (pt-BR)
 
+
+

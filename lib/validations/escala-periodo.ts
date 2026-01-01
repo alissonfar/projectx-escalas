@@ -19,3 +19,5 @@ export type EscalaPeriodoFormData = z.infer<typeof escalaPeriodoSchema>
 export const escalaPeriodoSchemaCompleto = escalaPeriodoSchema
 
 
+
+

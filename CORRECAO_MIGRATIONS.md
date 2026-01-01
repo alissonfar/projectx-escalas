@@ -232,3 +232,5 @@ Se após seguir todos os passos o erro persistir:
 **Problema:** Migrations não aplicadas  
 **Solução:** Aplicar via `supabase db push`
 
+
+

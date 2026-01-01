@@ -9,3 +9,5 @@ export const profissionalSchema = z.object({
 
 export type ProfissionalFormData = z.infer<typeof profissionalSchema>
 
+
+

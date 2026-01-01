@@ -701,3 +701,5 @@ A estrutura atual **NÃO suporta** os fluxos de pré-escala e calendário visual
 **Documento gerado em:** Janeiro 2025  
 **Baseado em:** Schema atual (`20250101000000_initial_schema.sql`) e requisitos do usuário
 
+
+

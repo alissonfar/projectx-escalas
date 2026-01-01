@@ -27,3 +27,5 @@ export default async function ProfissionaisPage() {
   return <ProfissionalList profissionais={profissionais} />
 }
 
+
+

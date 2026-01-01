@@ -36,3 +36,5 @@ export function exportEscalasToPDF(escalas: EscalaComRelacoes[], titulo: string 
   doc.save(`escalas-${new Date().toISOString().split('T')[0]}.pdf`)
 }
 
+
+

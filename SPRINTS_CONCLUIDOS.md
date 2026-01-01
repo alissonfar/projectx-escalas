@@ -281,3 +281,5 @@ minmax(${numeroDias <= 7 ? '140px' : '80px'}, 1fr)
 **Data:** 28/12/2024  
 **Versão Final:** 2.0
 
+
+

@@ -30,3 +30,5 @@ export type EscalaAlocacaoFormData = z.infer<typeof escalaAlocacaoSchema>
 export const escalaAlocacaoSchemaCompleto = escalaAlocacaoSchema
 
 
+
+

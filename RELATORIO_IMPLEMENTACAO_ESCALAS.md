@@ -574,3 +574,5 @@ npx supabase migration up
 **Tempo de desenvolvimento:** ~3 horas  
 **Linhas de código:** ~2500 (estimativa)
 
+
+

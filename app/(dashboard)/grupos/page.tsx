@@ -27,3 +27,5 @@ export default async function GruposPage() {
   return <GrupoList grupos={grupos} />
 }
 
+
+

@@ -34,3 +34,5 @@ export function exportEscalasToExcel(escalas: EscalaComRelacoes[], nomeArquivo: 
   XLSX.writeFile(wb, `${nomeArquivo}-${new Date().toISOString().split('T')[0]}.xlsx`)
 }
 
+
+

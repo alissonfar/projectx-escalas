@@ -207,3 +207,5 @@ Conforme solicitado, esta etapa focou apenas em:
 
 **Próxima ação:** Validar migration em ambiente de desenvolvimento e aguardar aprovação antes de prosseguir.
 
+
+

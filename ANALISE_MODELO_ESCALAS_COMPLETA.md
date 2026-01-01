@@ -626,3 +626,5 @@ CREATE POLICY "Users can view allocations from own organizations"
 **Status:** ✅ Análise completa realizada  
 **Próxima ação:** Criar migration de refatoração do modelo
 
+
+

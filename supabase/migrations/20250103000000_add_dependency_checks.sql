@@ -65,3 +65,5 @@ COMMENT ON FUNCTION check_grupo_has_active_profissionais(UUID) IS
 COMMENT ON FUNCTION check_profissional_has_future_escalas(UUID) IS 
 'Verifica se um profissional possui escalas confirmadas futuras. Retorna TRUE se houver escalas futuras, FALSE caso contrário.';
 
+
+

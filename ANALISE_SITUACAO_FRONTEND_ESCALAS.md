@@ -329,3 +329,5 @@ const grid = agruparPorDiaSetor(alocacoes, mes, ano)
 
 **Recomendação:** Executar migration → Refatorar backend → Implementar frontend
 
+
+

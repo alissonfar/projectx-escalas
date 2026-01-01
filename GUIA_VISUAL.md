@@ -526,3 +526,5 @@ Exemplo prático:
 **Data:** 28/12/2025  
 **Propósito:** Documentação visual e diagramas de fluxo
 
+
+

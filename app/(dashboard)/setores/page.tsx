@@ -30,3 +30,5 @@ export default async function SetoresPage() {
   return <SetorList setores={setores} />
 }
 
+
+

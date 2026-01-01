@@ -51,3 +51,5 @@ export function ShiftCard({ alocacao, ehPreEscala, onClick }: ShiftCardProps) {
 }
 
 
+
+

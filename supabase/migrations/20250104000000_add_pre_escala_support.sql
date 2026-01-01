@@ -224,3 +224,5 @@ COMMENT ON COLUMN public.escalas.publicado_por IS
 COMMENT ON COLUMN public.escalas.turno IS 
 'Turno da escala: manha (06:00-12:00), tarde (12:00-18:00), noite (18:00-06:00), integral (>=12h). Inferido automaticamente se não especificado.';
 
+
+

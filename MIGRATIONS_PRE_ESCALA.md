@@ -218,3 +218,5 @@ export type Escala = {
 **Status:** ✅ Migration criada e código atualizado  
 **Próxima ação:** Implementar ações de backend para salvar rascunho e publicar escalas
 
+
+

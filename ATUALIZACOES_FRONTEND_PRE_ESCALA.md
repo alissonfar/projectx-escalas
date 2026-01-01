@@ -309,3 +309,5 @@ interface EscalaFormProps {
 **Status:** ✅ Componentes frontend atualizados e funcionais  
 **Próxima ação:** Testar fluxos completos e ajustar publicação de novas escalas
 
+
+

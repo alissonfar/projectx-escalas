@@ -249,3 +249,5 @@ escalas (1) ──< (N) escala_periodos (1) ──< (N) escala_alocacoes
 **Migration:** `20250105000000_refatorar_modelo_escalas.sql`  
 **Status:** Aguardando validação
 
+
+

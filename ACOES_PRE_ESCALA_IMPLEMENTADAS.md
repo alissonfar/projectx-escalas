@@ -351,3 +351,5 @@ await publicarEscala(escalaId)
 **Status:** ✅ Todas as ações de backend implementadas  
 **Próxima ação:** Atualizar componentes frontend para usar as novas ações
 
+
+

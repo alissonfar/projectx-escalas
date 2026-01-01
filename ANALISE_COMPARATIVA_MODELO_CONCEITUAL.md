@@ -811,3 +811,5 @@ export function getWeekNumber(dia: number, mes: number, ano: number) {
 
 **Recomendação:** Corrigir lacunas de alta prioridade antes de production.
 
+
+
