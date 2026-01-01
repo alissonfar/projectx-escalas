@@ -19,7 +19,7 @@ import {
   removerAlocacao,
   buscarProfissionaisParaSelect
 } from '@/lib/actions/escala-alocacoes'
-import { getWeeksInMonth, getDaysForVisualization, type VisualizacaoModo } from '@/lib/utils/calendar'
+import { getWeeksInMonth, getDaysForVisualization, getWeeksMatrix, type VisualizacaoModo } from '@/lib/utils/calendar'
 import type { Setor, Hospital, EscalaAlocacaoCompleta, EscalaPeriodoEstado } from '@/types/database'
 
 interface EscalasClientProps {
@@ -45,6 +45,25 @@ export function EscalasClient({ setoresIniciais, mesInicial, anoInicial }: Escal
   )
   
   const totalSemanas = semanas.length
+  
+  // Para modo mensal, usar matriz de semanas (calendário tradicional)
+  // Para modo semanal, converter a semana em matriz (preenchendo com null se necessário)
+  const semanasMatrix = useMemo(() => {
+    if (modo === 'mensal') {
+      return getWeeksMatrix(mes, ano)
+    } else {
+      // Modo semanal: pegar a semana selecionada e converter para formato de matriz
+      const diasSemana = getDaysForVisualization(modo, mes, ano, semanaAtual)
+      // Criar array de 7 elementos, preenchendo com null os dias que não existem
+      const semanaArray: (number | null)[] = new Array(7).fill(null)
+      diasSemana.forEach((dia, index) => {
+        const data = new Date(ano, mes - 1, dia)
+        const diaSemana = data.getDay() // 0-6 (Dom-Sáb)
+        semanaArray[diaSemana] = dia
+      })
+      return [semanaArray]
+    }
+  }, [modo, mes, ano, semanaAtual])
   
   const dias = useMemo(
     () => getDaysForVisualization(modo, mes, ano, semanaAtual),
@@ -331,7 +350,7 @@ export function EscalasClient({ setoresIniciais, mesInicial, anoInicial }: Escal
             setores={setores}
             mes={mes}
             ano={ano}
-            dias={dias}
+            semanas={modo === 'mensal' ? semanasMatrix : semanasMatrix}
             alocacoesPorSetor={alocacoesPorSetor}
             estado={estadoGeral}
             onAddShift={handleAddShift}
