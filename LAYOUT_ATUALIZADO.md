@@ -13,7 +13,7 @@ Cor: #1E73BE (azul referência) / dark: gray-800
 Altura: 64px (h-16)
 
 Elementos:
-├── Logo "PEGA PLANTÃO"
+├── Logo "ESCALA FISIO"
 ├── Botão de tema (claro/escuro) ☀️/🌙
 ├── Ícone de ajuda
 ├── Ícone de mensagens
@@ -274,7 +274,7 @@ Localizado no header global, à direita:
 
 ### Header Global
 
-- [x] Logo "PEGA PLANTÃO"
+- [x] Logo "ESCALA FISIO"
 - [x] Toggle tema (claro/escuro)
 - [x] Ícone ajuda
 - [x] Ícone mensagens

@@ -1,4 +1,4 @@
-# 🏥 Sistema de Gestão de Escalas - Pega Plantão
+# 🏥 Sistema de Gestão de Escalas - EscalaFisio
 
 Sistema completo para gerenciamento de escalas médicas e de profissionais de saúde.
 

@@ -148,7 +148,7 @@ export default function DashboardLayout({
               </svg>
             </div>
             <h1 className="text-white font-bold text-lg tracking-wider">
-              PEGA PLANTÃO
+              ESCALA FISIO
             </h1>
           </div>
 

@@ -321,7 +321,7 @@ export default function SelecionarOrganizacaoPage() {
 
         {/* Footer */}
         <p className="text-center text-white/60 text-xs mt-6">
-          © 2025 Pega Plantão. Todos os direitos reservados.
+          © 2025 EscalaFisio. Todos os direitos reservados.
         </p>
       </div>
 

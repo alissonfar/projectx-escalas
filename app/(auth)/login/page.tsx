@@ -77,7 +77,7 @@ export default function LoginPage() {
             </svg>
           </div>
           <h1 className="text-3xl font-bold text-white mb-2 tracking-tight">
-            PEGA PLANTÃO
+            ESCALA FISIO
           </h1>
           <p className="text-white/80 text-sm">
             Sistema de Gerenciamento de Escalas
@@ -153,7 +153,7 @@ export default function LoginPage() {
 
         {/* Footer */}
         <p className="text-center text-white/60 text-xs mt-6">
-          © 2025 Pega Plantão. Todos os direitos reservados.
+          © 2025 EscalaFisio. Todos os direitos reservados.
         </p>
       </div>
 

@@ -5,8 +5,8 @@ import './globals.css'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Sistema de Escalas',
-  description: 'Sistema para gerenciamento de escalas de plantonistas',
+  title: 'EscalaFisio - Sistema de Gestão de Escalas',
+  description: 'Sistema para gerenciamento de escalas de fisioterapeutas e profissionais de saúde',
 }
 
 export default function RootLayout({

@@ -73,7 +73,7 @@ SELECT * FROM profiles WHERE id = '[user_id]';
 ### Teste 3: Layout do Dashboard
 
 - [ ] Header está visível
-- [ ] Logo "PEGA PLANTÃO" aparece
+- [ ] Logo "ESCALA FISIO" aparece
 - [ ] Seletor de organização mostra o nome correto
 - [ ] Menu de usuário mostra nome do perfil
 - [ ] Sidebar está visível (desktop)

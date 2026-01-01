@@ -94,7 +94,7 @@ export default function CadastroPage() {
             </svg>
           </div>
           <h1 className="text-3xl font-bold text-white mb-2 tracking-tight">
-            PEGA PLANTÃO
+            ESCALA FISIO
           </h1>
           <p className="text-white/80 text-sm">
             Crie sua conta gratuitamente
@@ -204,7 +204,7 @@ export default function CadastroPage() {
 
         {/* Footer */}
         <p className="text-center text-white/60 text-xs mt-6">
-          © 2025 Pega Plantão. Todos os direitos reservados.
+          © 2025 EscalaFisio. Todos os direitos reservados.
         </p>
       </div>
 

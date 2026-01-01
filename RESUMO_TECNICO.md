@@ -121,7 +121,7 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 ### Paleta de Cores
 
 ```css
-/* Baseado na referência Pega Plantão */
+/* Baseado na referência EscalaFisio */
 --primary: #1E73BE;         /* Azul médico */
 --primary-hover: #1557A0;   /* Azul escuro */
 --secondary: #2589D4;       /* Azul claro */
@@ -317,7 +317,7 @@ npm run dev
    → Ver layout completo
 
 7. Verificar header:
-   - Logo "PEGA PLANTÃO"
+   - Logo "ESCALA FISIO"
    - Seletor de org mostra "Hospital Central"
    - Menu de usuário mostra "João Silva"
 
