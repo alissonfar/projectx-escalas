@@ -1,11 +1,12 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { ScaleGrid } from './grid/ScaleGrid'
 import { MonthSelector } from './filters/MonthSelector'
 import { StateIndicator } from './filters/StateIndicator'
 import { ViewModeSelector } from './filters/ViewModeSelector'
+import { SectorSelector } from './filters/SectorSelector'
 import { AddShiftModal, type ShiftFormData } from './forms/AddShiftModal'
 import { 
   criarOuObterPeriodo,
@@ -37,6 +38,12 @@ export function EscalasClient({ setoresIniciais, mesInicial, anoInicial }: Escal
   const [setores] = useState(setoresIniciais)
   const [modo, setModo] = useState<VisualizacaoModo>('mensal')
   const [semanaAtual, setSemanaAtual] = useState(1)
+  
+  // Estado do filtro de setores
+  // Por padrão, seleciona o primeiro setor (se existir)
+  const [setoresSelecionados, setSetoresSelecionados] = useState<string[]>(() => {
+    return setoresIniciais.length > 0 ? [setoresIniciais[0].id] : []
+  })
   
   // Calcular semanas e dias baseado no modo
   const semanas = useMemo(
@@ -86,27 +93,27 @@ export function EscalasClient({ setoresIniciais, mesInicial, anoInicial }: Escal
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   
-  // Buscar dados quando mês/ano mudar
-  useEffect(() => {
-    carregarDados()
-  }, [mes, ano])
-  
-  // Buscar profissionais ao montar
-  useEffect(() => {
-    carregarProfissionais()
-  }, [])
-  
-  // Resetar semana quando mudar mês
-  useEffect(() => {
-    setSemanaAtual(1)
-  }, [mes, ano])
+  // Filtrar setores baseado na seleção
+  const setoresFiltrados = useMemo(() => {
+    if (setoresSelecionados.length === 0) {
+      return [] // Se nenhum setor selecionado, não mostrar nada
+    }
+    return setores.filter(setor => setoresSelecionados.includes(setor.id))
+  }, [setores, setoresSelecionados])
   
   const carregarProfissionais = async () => {
     const profs = await buscarProfissionaisParaSelect()
     setProfissionais(profs)
   }
   
-  const carregarDados = async () => {
+  const carregarDados = useCallback(async () => {
+    // Se nenhum setor selecionado, limpar dados
+    if (setoresSelecionados.length === 0) {
+      setPeriodosPorSetor({})
+      setAlocacoesPorSetor({})
+      return
+    }
+    
     setLoading(true)
     setError(null)
     
@@ -114,8 +121,11 @@ export function EscalasClient({ setoresIniciais, mesInicial, anoInicial }: Escal
       const periodos: Record<string, { id: string; estado: EscalaPeriodoEstado }> = {}
       const alocacoes: Record<string, EscalaAlocacaoCompleta[]> = {}
       
-      // Para cada setor, buscar ou criar período e suas alocações
-      for (const setor of setores) {
+      // Para cada setor SELECIONADO, buscar ou criar período e suas alocações
+      for (const setorId of setoresSelecionados) {
+        const setor = setores.find(s => s.id === setorId)
+        if (!setor) continue
+        
         const periodoResult = await criarOuObterPeriodo(setor.id, mes, ano)
         
         if (periodoResult.success && periodoResult.periodoId) {
@@ -137,7 +147,22 @@ export function EscalasClient({ setoresIniciais, mesInicial, anoInicial }: Escal
     } finally {
       setLoading(false)
     }
-  }
+  }, [setoresSelecionados, mes, ano, setores])
+  
+  // Buscar dados quando mês/ano ou setores selecionados mudarem
+  useEffect(() => {
+    carregarDados()
+  }, [carregarDados])
+  
+  // Buscar profissionais ao montar
+  useEffect(() => {
+    carregarProfissionais()
+  }, [])
+  
+  // Resetar semana quando mudar mês
+  useEffect(() => {
+    setSemanaAtual(1)
+  }, [mes, ano])
   
   const handleMudaMes = (novoMes: number, novoAno: number) => {
     setMes(novoMes)
@@ -237,61 +262,103 @@ export function EscalasClient({ setoresIniciais, mesInicial, anoInicial }: Escal
   }
   
   const handlePublicar = async () => {
-    // Publicar todos os períodos do mês
+    // Publicar todos os períodos dos setores selecionados
+    const periodosParaPublicar = Object.values(periodosPorSetor)
+    
+    if (periodosParaPublicar.length === 0) {
+      setError('Nenhum período disponível para publicar')
+      return
+    }
+    
     setLoading(true)
     setError(null)
     setSuccess(null)
     
     try {
       const results = await Promise.all(
-        Object.values(periodosPorSetor).map(p => publicarPeriodo(p.id))
+        periodosParaPublicar.map(p => publicarPeriodo(p.id))
       )
       
       const erros = results.filter(r => !r.success)
       if (erros.length > 0) {
         setError(`Erro ao publicar alguns períodos: ${erros[0].error}`)
       } else {
-        setSuccess('Mês publicado com sucesso!')
+        const quantidade = periodosParaPublicar.length
+        setSuccess(`${quantidade} ${quantidade === 1 ? 'período publicado' : 'períodos publicados'} com sucesso!`)
         await carregarDados()
       }
     } catch (err) {
       console.error('Erro ao publicar:', err)
-      setError('Erro ao publicar mês')
+      setError('Erro ao publicar períodos')
     } finally {
       setLoading(false)
     }
   }
   
   const handleDespublicar = async () => {
-    // Despublicar todos os períodos do mês
+    // Despublicar todos os períodos dos setores selecionados
+    const periodosParaDespublicar = Object.values(periodosPorSetor)
+    
+    if (periodosParaDespublicar.length === 0) {
+      setError('Nenhum período disponível para despublicar')
+      return
+    }
+    
     setLoading(true)
     setError(null)
     setSuccess(null)
     
     try {
       const results = await Promise.all(
-        Object.values(periodosPorSetor).map(p => despublicarPeriodo(p.id))
+        periodosParaDespublicar.map(p => despublicarPeriodo(p.id))
       )
       
       const erros = results.filter(r => !r.success)
       if (erros.length > 0) {
         setError(`Erro ao despublicar alguns períodos: ${erros[0].error}`)
       } else {
-        setSuccess('Mês despublicado com sucesso! Agora você pode editar.')
+        const quantidade = periodosParaDespublicar.length
+        setSuccess(`${quantidade} ${quantidade === 1 ? 'período despublicado' : 'períodos despublicados'} com sucesso! Agora você pode editar.`)
         await carregarDados()
       }
     } catch (err) {
       console.error('Erro ao despublicar:', err)
-      setError('Erro ao despublicar mês')
+      setError('Erro ao despublicar períodos')
     } finally {
       setLoading(false)
     }
   }
   
   // Determinar estado geral (se algum está publicado, considera publicado)
+  // Apenas dos setores selecionados
   const estadoGeral: EscalaPeriodoEstado = Object.values(periodosPorSetor).some(p => p.estado === 'publicada')
     ? 'publicada'
     : 'pre_escala'
+  
+  // Atualizar setores selecionados quando setores disponíveis mudarem
+  useEffect(() => {
+    // Se algum setor selecionado não existe mais, removê-lo
+    const setoresValidos = setoresSelecionados.filter(id => 
+      setores.some(s => s.id === id)
+    )
+    
+    // Se algum setor foi removido, atualizar a seleção
+    if (setoresValidos.length !== setoresSelecionados.length) {
+      // Se ainda há setores válidos, manter apenas eles
+      if (setoresValidos.length > 0) {
+        setSetoresSelecionados(setoresValidos)
+      } 
+      // Se não há mais setores válidos mas há setores disponíveis, selecionar o primeiro
+      else if (setores.length > 0) {
+        setSetoresSelecionados([setores[0].id])
+      }
+      // Se não há setores disponíveis, limpar seleção
+      else {
+        setSetoresSelecionados([])
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [setores])
   
   return (
     <div className="flex flex-col h-full">
@@ -320,7 +387,12 @@ export function EscalasClient({ setoresIniciais, mesInicial, anoInicial }: Escal
         
         {/* Controles */}
         <div className="flex items-center justify-between bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 flex-wrap">
+            <SectorSelector
+              setores={setores}
+              selectedSetores={setoresSelecionados}
+              onChange={setSetoresSelecionados}
+            />
             <MonthSelector mes={mes} ano={ano} onChange={handleMudaMes} />
             <ViewModeSelector
               modo={modo}
@@ -346,16 +418,29 @@ export function EscalasClient({ setoresIniciais, mesInicial, anoInicial }: Escal
             <p className="text-gray-500 dark:text-gray-400">Carregando...</p>
           </div>
         ) : (
-          <ScaleGrid
-            setores={setores}
-            mes={mes}
-            ano={ano}
-            semanas={modo === 'mensal' ? semanasMatrix : semanasMatrix}
-            alocacoesPorSetor={alocacoesPorSetor}
-            estado={estadoGeral}
-            onAddShift={handleAddShift}
-            onEditShift={handleEditShift}
-          />
+          setoresFiltrados.length === 0 ? (
+            <div className="flex items-center justify-center h-full border border-gray-200 dark:border-gray-700 rounded-lg">
+              <div className="text-center">
+                <p className="text-gray-500 dark:text-gray-400 text-lg font-medium mb-2">
+                  Nenhum setor selecionado
+                </p>
+                <p className="text-gray-400 dark:text-gray-500 text-sm">
+                  Selecione um ou mais setores no filtro acima para visualizar as escalas
+                </p>
+              </div>
+            </div>
+          ) : (
+            <ScaleGrid
+              setores={setoresFiltrados}
+              mes={mes}
+              ano={ano}
+              semanas={modo === 'mensal' ? semanasMatrix : semanasMatrix}
+              alocacoesPorSetor={alocacoesPorSetor}
+              estado={estadoGeral}
+              onAddShift={handleAddShift}
+              onEditShift={handleEditShift}
+            />
+          )
         )}
       </div>
       
