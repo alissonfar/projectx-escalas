@@ -2,70 +2,7 @@
  * Tipos TypeScript baseados no modelo de dados do PRD
  */
 
-// Tipo Database para Supabase
-// Para gerar tipos completos do Supabase, execute: npm run gen-types
-// Isso gerará types/database-generated.ts que pode ser importado aqui
-export type Database = {
-  public: {
-    Tables: {
-      organizacoes: {
-        Row: Organizacao
-        Insert: Omit<Organizacao, 'id' | 'created_at'>
-        Update: Partial<Omit<Organizacao, 'id' | 'created_at'>>
-      }
-      hospitais: {
-        Row: Hospital
-        Insert: Omit<Hospital, 'id' | 'created_at'>
-        Update: Partial<Omit<Hospital, 'id' | 'created_at'>>
-      }
-      grupos: {
-        Row: Grupo
-        Insert: Omit<Grupo, 'id' | 'created_at'>
-        Update: Partial<Omit<Grupo, 'id' | 'created_at'>>
-      }
-      setores: {
-        Row: Setor
-        Insert: Omit<Setor, 'id' | 'created_at'>
-        Update: Partial<Omit<Setor, 'id' | 'created_at'>>
-      }
-      profissionais: {
-        Row: Profissional
-        Insert: Omit<Profissional, 'id' | 'created_at'>
-        Update: Partial<Omit<Profissional, 'id' | 'created_at'>>
-      }
-      escalas: {
-        Row: Escala
-        Insert: Omit<Escala, 'id' | 'created_at' | 'updated_at'>
-        Update: Partial<Omit<Escala, 'id' | 'created_at' | 'updated_at'>>
-      }
-      escala_periodos: {
-        Row: EscalaPeriodo
-        Insert: Omit<EscalaPeriodo, 'id' | 'created_at' | 'updated_at'>
-        Update: Partial<Omit<EscalaPeriodo, 'id' | 'created_at' | 'updated_at'>>
-      }
-      escala_alocacoes: {
-        Row: EscalaAlocacao
-        Insert: Omit<EscalaAlocacao, 'id' | 'created_at' | 'updated_at'>
-        Update: Partial<Omit<EscalaAlocacao, 'id' | 'created_at' | 'updated_at'>>
-      }
-      profiles: {
-        Row: Profile
-        Insert: Omit<Profile, 'created_at'>
-        Update: Partial<Omit<Profile, 'created_at'>>
-      }
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      [_ in never]: never
-    }
-    Enums: {
-      [_ in never]: never
-    }
-  }
-}
-
+// Definir tipos básicos primeiro para uso no tipo Database
 export type Organizacao = {
   id: string
   nome: string
@@ -162,6 +99,90 @@ export type Profile = {
   nome_completo: string
   organizacao_ativa_id: string | null
   created_at: string
+}
+
+// Tipos auxiliares para Insert e Update (garantir resolução correta de tipos)
+type OrganizacaoInsert = Omit<Organizacao, 'id' | 'created_at'>
+type OrganizacaoUpdate = Partial<OrganizacaoInsert>
+type HospitalInsert = Omit<Hospital, 'id' | 'created_at'>
+type HospitalUpdate = Partial<HospitalInsert>
+type GrupoInsert = Omit<Grupo, 'id' | 'created_at'>
+type GrupoUpdate = Partial<GrupoInsert>
+type SetorInsert = Omit<Setor, 'id' | 'created_at'>
+type SetorUpdate = Partial<SetorInsert>
+type ProfissionalInsert = Omit<Profissional, 'id' | 'created_at'>
+type ProfissionalUpdate = Partial<ProfissionalInsert>
+type EscalaInsert = Omit<Escala, 'id' | 'created_at' | 'updated_at'>
+type EscalaUpdate = Partial<EscalaInsert>
+type EscalaPeriodoInsert = Omit<EscalaPeriodo, 'id' | 'created_at' | 'updated_at'>
+type EscalaPeriodoUpdate = Partial<EscalaPeriodoInsert>
+type EscalaAlocacaoInsert = Omit<EscalaAlocacao, 'id' | 'created_at' | 'updated_at'>
+type EscalaAlocacaoUpdate = Partial<EscalaAlocacaoInsert>
+type ProfileInsert = Omit<Profile, 'created_at'>
+type ProfileUpdate = Partial<ProfileInsert>
+
+// Tipo Database para Supabase
+// Para gerar tipos completos do Supabase, execute: npm run gen-types
+// Isso gerará types/database-generated.ts que pode ser importado aqui
+export type Database = {
+  public: {
+    Tables: {
+      organizacoes: {
+        Row: Organizacao
+        Insert: OrganizacaoInsert
+        Update: OrganizacaoUpdate
+      }
+      hospitais: {
+        Row: Hospital
+        Insert: HospitalInsert
+        Update: HospitalUpdate
+      }
+      grupos: {
+        Row: Grupo
+        Insert: GrupoInsert
+        Update: GrupoUpdate
+      }
+      setores: {
+        Row: Setor
+        Insert: SetorInsert
+        Update: SetorUpdate
+      }
+      profissionais: {
+        Row: Profissional
+        Insert: ProfissionalInsert
+        Update: ProfissionalUpdate
+      }
+      escalas: {
+        Row: Escala
+        Insert: EscalaInsert
+        Update: EscalaUpdate
+      }
+      escala_periodos: {
+        Row: EscalaPeriodo
+        Insert: EscalaPeriodoInsert
+        Update: EscalaPeriodoUpdate
+      }
+      escala_alocacoes: {
+        Row: EscalaAlocacao
+        Insert: EscalaAlocacaoInsert
+        Update: EscalaAlocacaoUpdate
+      }
+      profiles: {
+        Row: Profile
+        Insert: ProfileInsert
+        Update: ProfileUpdate
+      }
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      [_ in never]: never
+    }
+    Enums: {
+      [_ in never]: never
+    }
+  }
 }
 
 // Tipos com relacionamentos (para queries com joins)

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
@@ -8,7 +8,9 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Alert } from '@/components/ui/alert'
 import { Card } from '@/components/ui/card'
-import type { Organizacao } from '@/types/database'
+import type { Database } from '@/types/supabase'
+
+type Organizacao = Database['public']['Tables']['organizacoes']['Row']
 
 export default function SelecionarOrganizacaoPage() {
   const router = useRouter()
@@ -22,11 +24,7 @@ export default function SelecionarOrganizacaoPage() {
   const [error, setError] = useState<string | null>(null)
   const [salvando, setSalvando] = useState(false)
 
-  useEffect(() => {
-    carregarOrganizacoes()
-  }, [])
-
-  const carregarOrganizacoes = async () => {
+  const carregarOrganizacoes = useCallback(async () => {
     try {
       const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
@@ -54,7 +52,11 @@ export default function SelecionarOrganizacaoPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [router])
+
+  useEffect(() => {
+    carregarOrganizacoes()
+  }, [carregarOrganizacoes])
 
   const criarOrganizacao = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -284,7 +286,7 @@ export default function SelecionarOrganizacaoPage() {
                                 {org.nome}
                               </h3>
                               <p className="text-xs text-gray-500">
-                                Criada em {new Date(org.created_at).toLocaleDateString('pt-BR')}
+                                Criada em {org.created_at ? new Date(org.created_at).toLocaleDateString('pt-BR') : 'Data não disponível'}
                               </p>
                             </div>
                           </div>
