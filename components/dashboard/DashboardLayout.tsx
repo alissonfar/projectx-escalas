@@ -61,6 +61,7 @@ export default function DashboardLayout({
     
     if (!error) {
       setOrgSelectorOpen(false)
+      setUserMenuOpen(false)
       router.refresh()
     }
   }
@@ -222,6 +223,52 @@ export default function DashboardLayout({
                     </p>
                     <p className="text-xs text-gray-600 dark:text-gray-400">{user.email}</p>
                   </div>
+                  
+                  {/* Seletor de Organização */}
+                  <div className="px-4 py-2 border-b border-gray-200 dark:border-gray-700">
+                    <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">
+                      Organização Ativa
+                    </p>
+                    <button
+                      onClick={() => setOrgSelectorOpen(!orgSelectorOpen)}
+                      className="w-full text-left px-3 py-2 rounded-md bg-gray-50 dark:bg-gray-700/50 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center justify-between"
+                    >
+                      <span className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                        {organizacaoAtiva?.nome || 'Selecione uma organização'}
+                      </span>
+                      <svg className="w-4 h-4 text-gray-500 dark:text-gray-400 flex-shrink-0 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+                    
+                    {orgSelectorOpen && (
+                      <div className="mt-2 space-y-1 max-h-64 overflow-y-auto">
+                        {organizacoes.map((org) => (
+                          <button
+                            key={org.id}
+                            onClick={() => handleChangeOrg(org.id)}
+                            className={`w-full text-left px-3 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center justify-between ${
+                              org.id === organizacaoAtiva?.id ? 'bg-blue-50 dark:bg-blue-900/20' : ''
+                            }`}
+                          >
+                            <span className={`text-sm ${
+                              org.id === organizacaoAtiva?.id
+                                ? 'text-primary-600 dark:text-primary-400 font-medium'
+                                : 'text-gray-700 dark:text-gray-300'
+                            }`}>
+                              {org.nome}
+                            </span>
+                            {org.id === organizacaoAtiva?.id && (
+                              <svg className="w-4 h-4 text-primary-600 dark:text-primary-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                              </svg>
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  
                   <button
                     onClick={handleLogout}
                     className="w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
@@ -288,112 +335,15 @@ export default function DashboardLayout({
 
         {/* CONTEÚDO PRINCIPAL */}
         <div className="flex-1 ml-16">
-          {/* HEADER CONTEXTUAL/SECUNDÁRIO */}
-          <div className="sticky top-16 bg-primary-600 dark:bg-gray-800 shadow-md z-30">
-            <div className="h-16 px-6 flex items-center justify-between">
-              {/* Left - Breadcrumb/Title */}
-              <div className="flex items-center gap-4">
-                <button className="p-2 rounded-lg hover:bg-white/10 transition-colors">
-                  <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/>
-                  </svg>
-                </button>
-                <div className="flex items-center gap-2 text-white">
-                  <span className="font-semibold text-sm uppercase tracking-wide">ESCALA</span>
-                  <span className="text-white/60">/</span>
-                  <span className="font-semibold text-sm uppercase tracking-wide">SEMANAL</span>
-                </div>
-              </div>
-
-              {/* Center - Search */}
-              <div className="flex-1 max-w-md mx-8">
-                <div className="relative">
-                  <input
-                    type="text"
-                    placeholder="Pesquisar por setor..."
-                    className="w-full h-10 pl-4 pr-4 rounded-lg bg-white/10 border border-white/20 text-white placeholder-white/60 focus:bg-white/20 focus:border-white/40 transition-colors outline-none text-sm"
-                  />
-                </div>
-              </div>
-
-              {/* Right - Org Selector & Filter */}
-              <div className="flex items-center gap-3">
-                {/* Org Selector */}
-                <div className="relative">
-                  <button
-                    onClick={() => setOrgSelectorOpen(!orgSelectorOpen)}
-                    className="h-10 px-4 rounded-lg bg-white/10 border border-white/20 hover:bg-white/20 transition-colors flex items-center gap-2"
-                  >
-                    <span className="text-white text-sm font-medium">
-                      {organizacaoAtiva?.nome || 'Organização'}
-                    </span>
-                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </button>
-
-                  {orgSelectorOpen && (
-                    <div className="absolute right-0 top-full mt-2 w-64 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 py-2 z-50">
-                      <div className="px-4 py-2 border-b border-gray-200 dark:border-gray-700">
-                        <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-                          Organizações
-                        </p>
-                      </div>
-                      {organizacoes.map((org) => (
-                        <button
-                          key={org.id}
-                          onClick={() => handleChangeOrg(org.id)}
-                          className={`w-full text-left px-4 py-2.5 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors ${
-                            org.id === organizacaoAtiva?.id ? 'bg-blue-50 dark:bg-blue-900/20' : ''
-                          }`}
-                        >
-                          <div className="flex items-center justify-between">
-                            <span className={`text-sm font-medium ${
-                              org.id === organizacaoAtiva?.id
-                                ? 'text-primary-600 dark:text-primary-400'
-                                : 'text-gray-700 dark:text-gray-300'
-                            }`}>
-                              {org.nome}
-                            </span>
-                            {org.id === organizacaoAtiva?.id && (
-                              <svg className="w-4 h-4 text-primary-600 dark:text-primary-400" fill="currentColor" viewBox="0 0 20 20">
-                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                              </svg>
-                            )}
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                {/* Filter Button */}
-                <button className="h-10 px-4 rounded-lg bg-white/10 border border-white/20 hover:bg-white/20 transition-colors flex items-center gap-2">
-                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
-                  </svg>
-                  <span className="text-white text-sm font-medium">Filtrar</span>
-                </button>
-
-                {/* Info */}
-                <button className="w-10 h-10 rounded-lg bg-white/10 border border-white/20 hover:bg-white/20 transition-colors flex items-center justify-center">
-                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </button>
-              </div>
-            </div>
-          </div>
-
           {/* ÁREA DE CONTEÚDO */}
-          <main className="p-6 bg-gray-50 dark:bg-gray-900 min-h-[calc(100vh-8rem)]">
+          <main className="p-6 bg-gray-50 dark:bg-gray-900 min-h-[calc(100vh-4rem)]">
             {children}
           </main>
         </div>
       </div>
 
       {/* Backdrop para dropdowns */}
-      {(userMenuOpen || orgSelectorOpen) && (
+      {userMenuOpen && (
         <div
           className="fixed inset-0 z-30"
           onClick={() => {
