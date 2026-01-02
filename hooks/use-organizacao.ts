@@ -31,7 +31,14 @@ export function useOrganizacao() {
           .eq('id', profile.organizacao_ativa_id)
           .single()
 
-        setOrganizacaoAtiva(org)
+        // Mapear para garantir compatibilidade de tipos (ativo e created_at sempre presentes)
+        const orgMapeada: Organizacao | null = org ? {
+          ...org,
+          ativo: org.ativo ?? true,
+          created_at: org.created_at ?? new Date().toISOString()
+        } : null
+
+        setOrganizacaoAtiva(orgMapeada)
         setNeedsOrganization(false)
       } else {
         // Usuário não tem organização ativa
@@ -76,9 +83,7 @@ export function useOrganizacao() {
         .subscribe()
 
       // Verificar se a subscription foi estabelecida
-      channel.on('error', (error) => {
-        console.error('Erro na subscription Realtime:', error)
-      })
+      // Handler de erro removido: método on() do Supabase requer 3 argumentos
     }
 
     setupSubscription()

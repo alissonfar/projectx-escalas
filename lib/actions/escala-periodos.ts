@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { escalaPeriodoSchemaCompleto, type EscalaPeriodoFormData } from '@/lib/validations/escala-periodo'
-import type { EscalaPeriodo, EscalaPeriodoCompleto, Setor, Hospital } from '@/types/database'
+import type { EscalaPeriodo, EscalaPeriodoCompleto, EscalaPeriodoEstado, Setor, Hospital } from '@/types/database'
 
 export type ActionResult = {
   success: boolean

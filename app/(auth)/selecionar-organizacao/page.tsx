@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
@@ -12,7 +12,7 @@ import type { Database } from '@/types/supabase'
 
 type Organizacao = Database['public']['Tables']['organizacoes']['Row']
 
-export default function SelecionarOrganizacaoPage() {
+function SelecionarOrganizacaoContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const isNovo = searchParams.get('novo') === 'true'
@@ -359,6 +359,18 @@ export default function SelecionarOrganizacaoPage() {
         }
       `}</style>
     </div>
+  )
+}
+
+export default function SelecionarOrganizacaoPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#1E73BE] via-[#2589D4] to-[#1E73BE]">
+        <div className="text-white text-lg">Carregando...</div>
+      </div>
+    }>
+      <SelecionarOrganizacaoContent />
+    </Suspense>
   )
 }
 

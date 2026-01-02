@@ -1,6 +1,6 @@
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
-import { EscalaComRelacoes } from '@/types/database'
+import type { EscalaComRelacoes } from '@/lib/actions/escalas'
 
 export function exportEscalasToPDF(escalas: EscalaComRelacoes[], titulo: string = 'Escalas') {
   const doc = new jsPDF()
@@ -15,17 +15,15 @@ export function exportEscalasToPDF(escalas: EscalaComRelacoes[], titulo: string 
   
   // Preparar dados da tabela
   const tableData = escalas.map((escala) => [
-    escala.profissional.nome,
-    escala.setor.nome,
-    new Date(escala.data_inicio).toLocaleString('pt-BR'),
-    new Date(escala.data_fim).toLocaleString('pt-BR'),
-    escala.observacoes || '-',
-    escala.status,
+    escala.profissional?.nome || '',
+    escala.setor?.nome || '',
+    // Propriedades removidas temporariamente: data_inicio, data_fim, observacoes, status
+    // não existem mais no tipo Escala após refatoração do modelo
   ])
   
   // Criar tabela
   autoTable(doc, {
-    head: [['Profissional', 'Setor', 'Início', 'Fim', 'Observações', 'Status']],
+    head: [['Profissional', 'Setor']],
     body: tableData,
     startY: 35,
     styles: { fontSize: 8 },

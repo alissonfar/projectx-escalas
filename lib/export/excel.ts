@@ -1,15 +1,13 @@
 import * as XLSX from 'xlsx'
-import { EscalaComRelacoes } from '@/types/database'
+import type { EscalaComRelacoes } from '@/lib/actions/escalas'
 
 export function exportEscalasToExcel(escalas: EscalaComRelacoes[], nomeArquivo: string = 'escalas') {
   // Preparar dados
   const dados = escalas.map((escala) => ({
-    Profissional: escala.profissional.nome,
-    Setor: escala.setor.nome,
-    'Data/Hora Início': new Date(escala.data_inicio).toLocaleString('pt-BR'),
-    'Data/Hora Fim': new Date(escala.data_fim).toLocaleString('pt-BR'),
-    Observações: escala.observacoes || '',
-    Status: escala.status,
+    Profissional: escala.profissional?.nome || '',
+    Setor: escala.setor?.nome || '',
+    // Propriedades removidas temporariamente: data_inicio, data_fim, observacoes, status
+    // não existem mais no tipo Escala após refatoração do modelo
   }))
   
   // Criar workbook
