@@ -4,7 +4,6 @@ import { useState, useEffect, useMemo, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { ScaleGrid } from './grid/ScaleGrid'
 import { MonthSelector } from './filters/MonthSelector'
-import { StateIndicator } from './filters/StateIndicator'
 import { ViewModeSelector } from './filters/ViewModeSelector'
 import { SectorSelector } from './filters/SectorSelector'
 import { AddShiftModal, type ShiftFormData } from './forms/AddShiftModal'
@@ -118,6 +117,8 @@ export function EscalasClient({ setoresIniciais, mesInicial, anoInicial }: Escal
     setError(null)
     
     try {
+      // ✅ CRÍTICO: Limpar dados ANTES de carregar novos para evitar estado "fantasma"
+      // Isso garante que setores não selecionados não mantenham estado antigo
       const periodos: Record<string, { id: string; estado: EscalaPeriodoEstado }> = {}
       const alocacoes: Record<string, EscalaAlocacaoCompleta[]> = {}
       
@@ -131,14 +132,16 @@ export function EscalasClient({ setoresIniciais, mesInicial, anoInicial }: Escal
         if (periodoResult.success && periodoResult.periodoId) {
           const alocacoesDoSetor = await buscarAlocacoesPeriodo(periodoResult.periodoId)
           
+          // ✅ Isolar estado por setor - cada setor tem seu próprio estado
           periodos[setor.id] = {
             id: periodoResult.periodoId,
-            estado: periodoResult.estado || 'pre_escala'  // ✅ Usar estado real do banco
+            estado: periodoResult.estado || 'pre_escala'  // ✅ Estado real do banco para ESTE setor
           }
           alocacoes[setor.id] = alocacoesDoSetor
         }
       }
       
+      // ✅ Substituir completamente os dados (não merge) para garantir isolamento
       setPeriodosPorSetor(periodos)
       setAlocacoesPorSetor(alocacoes)
     } catch (err) {
@@ -261,12 +264,12 @@ export function EscalasClient({ setoresIniciais, mesInicial, anoInicial }: Escal
     }
   }
   
-  const handlePublicar = async () => {
-    // Publicar todos os períodos dos setores selecionados
-    const periodosParaPublicar = Object.values(periodosPorSetor)
+  // ✅ Funções de publicação individuais por setor
+  const handlePublicarSetor = async (setorId: string) => {
+    const periodo = periodosPorSetor[setorId]
     
-    if (periodosParaPublicar.length === 0) {
-      setError('Nenhum período disponível para publicar')
+    if (!periodo) {
+      setError('Período não encontrado para este setor')
       return
     }
     
@@ -275,32 +278,28 @@ export function EscalasClient({ setoresIniciais, mesInicial, anoInicial }: Escal
     setSuccess(null)
     
     try {
-      const results = await Promise.all(
-        periodosParaPublicar.map(p => publicarPeriodo(p.id))
-      )
+      const result = await publicarPeriodo(periodo.id)
       
-      const erros = results.filter(r => !r.success)
-      if (erros.length > 0) {
-        setError(`Erro ao publicar alguns períodos: ${erros[0].error}`)
-      } else {
-        const quantidade = periodosParaPublicar.length
-        setSuccess(`${quantidade} ${quantidade === 1 ? 'período publicado' : 'períodos publicados'} com sucesso!`)
+      if (result.success) {
+        const setor = setores.find(s => s.id === setorId)
+        setSuccess(`Escala do setor "${setor?.nome}" publicada com sucesso!`)
         await carregarDados()
+      } else {
+        setError(result.error || 'Erro ao publicar escala')
       }
     } catch (err) {
       console.error('Erro ao publicar:', err)
-      setError('Erro ao publicar períodos')
+      setError('Erro ao publicar escala')
     } finally {
       setLoading(false)
     }
   }
   
-  const handleDespublicar = async () => {
-    // Despublicar todos os períodos dos setores selecionados
-    const periodosParaDespublicar = Object.values(periodosPorSetor)
+  const handleDespublicarSetor = async (setorId: string) => {
+    const periodo = periodosPorSetor[setorId]
     
-    if (periodosParaDespublicar.length === 0) {
-      setError('Nenhum período disponível para despublicar')
+    if (!periodo) {
+      setError('Período não encontrado para este setor')
       return
     }
     
@@ -309,31 +308,32 @@ export function EscalasClient({ setoresIniciais, mesInicial, anoInicial }: Escal
     setSuccess(null)
     
     try {
-      const results = await Promise.all(
-        periodosParaDespublicar.map(p => despublicarPeriodo(p.id))
-      )
+      const result = await despublicarPeriodo(periodo.id)
       
-      const erros = results.filter(r => !r.success)
-      if (erros.length > 0) {
-        setError(`Erro ao despublicar alguns períodos: ${erros[0].error}`)
-      } else {
-        const quantidade = periodosParaDespublicar.length
-        setSuccess(`${quantidade} ${quantidade === 1 ? 'período despublicado' : 'períodos despublicados'} com sucesso! Agora você pode editar.`)
+      if (result.success) {
+        const setor = setores.find(s => s.id === setorId)
+        setSuccess(`Escala do setor "${setor?.nome}" despublicada. Agora você pode editar.`)
         await carregarDados()
+      } else {
+        setError(result.error || 'Erro ao despublicar escala')
       }
     } catch (err) {
       console.error('Erro ao despublicar:', err)
-      setError('Erro ao despublicar períodos')
+      setError('Erro ao despublicar escala')
     } finally {
       setLoading(false)
     }
   }
   
-  // Determinar estado geral (se algum está publicado, considera publicado)
-  // Apenas dos setores selecionados
-  const estadoGeral: EscalaPeriodoEstado = Object.values(periodosPorSetor).some(p => p.estado === 'publicada')
-    ? 'publicada'
-    : 'pre_escala'
+  // ✅ Criar objeto de estados por setor para passar ao ScaleGrid
+  const estadosPorSetor = useMemo(() => {
+    const estados: Record<string, EscalaPeriodoEstado> = {}
+    setoresSelecionados.forEach(setorId => {
+      const periodo = periodosPorSetor[setorId]
+      estados[setorId] = periodo?.estado || 'pre_escala'
+    })
+    return estados
+  }, [setoresSelecionados, periodosPorSetor])
   
   // Atualizar setores selecionados quando setores disponíveis mudarem
   useEffect(() => {
@@ -402,12 +402,6 @@ export function EscalasClient({ setoresIniciais, mesInicial, anoInicial }: Escal
               onSemanaChange={setSemanaAtual}
             />
           </div>
-          <StateIndicator
-            estado={estadoGeral}
-            onPublicar={handlePublicar}
-            onDespublicar={handleDespublicar}
-            loading={loading}
-          />
         </div>
       </div>
       
@@ -436,9 +430,12 @@ export function EscalasClient({ setoresIniciais, mesInicial, anoInicial }: Escal
               ano={ano}
               semanas={modo === 'mensal' ? semanasMatrix : semanasMatrix}
               alocacoesPorSetor={alocacoesPorSetor}
-              estado={estadoGeral}
+              estadosPorSetor={estadosPorSetor}
               onAddShift={handleAddShift}
               onEditShift={handleEditShift}
+              onPublicar={handlePublicarSetor}
+              onDespublicar={handleDespublicarSetor}
+              loading={loading}
             />
           )
         )}

@@ -12,6 +12,7 @@ interface ScaleDayCellProps {
   ehFimDeSemana?: boolean
   ehDiaForaMes?: boolean
   dia?: number | null
+  ehColunaPar?: boolean
 }
 
 export function ScaleDayCell({ 
@@ -21,30 +22,45 @@ export function ScaleDayCell({
   onEditShift,
   ehFimDeSemana,
   ehDiaForaMes = false,
-  dia
+  dia,
+  ehColunaPar = true
 }: ScaleDayCellProps) {
   if (ehDiaForaMes) {
     return (
       <div 
         className={`
-          min-w-0 p-2 border-r border-gray-200 dark:border-gray-700 
-          bg-gray-50 dark:bg-gray-900/50
+          min-w-0 p-2 border-r-2 border-gray-300 dark:border-gray-600 
+          bg-gray-100 dark:bg-gray-900/50
         `}
       />
     )
   }
   
+  // Determinar cor de fundo baseado no zebrado e fim de semana
+  let bgColor = ''
+  if (ehFimDeSemana) {
+    // Fins de semana: cores mais saturadas
+    bgColor = ehColunaPar 
+      ? 'bg-blue-100 dark:bg-blue-900/20' 
+      : 'bg-blue-50 dark:bg-blue-900/30'
+  } else {
+    // Dias úteis: zebrado suave
+    bgColor = ehColunaPar 
+      ? 'bg-white dark:bg-gray-800' 
+      : 'bg-gray-50 dark:bg-gray-800/80'
+  }
+  
   return (
     <div 
       className={`
-        min-w-0 p-2 border-r border-gray-200 dark:border-gray-700 last:border-r-0
+        min-w-0 p-2 border-r-2 border-gray-300 dark:border-gray-600 last:border-r-0
         min-h-[120px] h-full flex flex-col
-        ${ehFimDeSemana ? 'bg-blue-50/50 dark:bg-blue-900/10' : 'bg-white dark:bg-gray-800'}
+        ${bgColor}
       `}
     >
-      {/* Número do dia no topo */}
+      {/* Número do dia no topo - destacado */}
       {dia !== null && dia !== undefined && (
-        <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1 flex-shrink-0">
+        <div className="text-lg font-bold text-gray-900 dark:text-white mb-2 flex-shrink-0">
           {dia}
         </div>
       )}

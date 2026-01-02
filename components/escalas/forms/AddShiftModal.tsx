@@ -116,7 +116,9 @@ export function AddShiftModal({
         dataConvertida = {
           ...data,
           data_inicio: datetimeLocalToISO(data.data_inicio),
-          data_fim: datetimeLocalToISO(data.data_fim)
+          data_fim: datetimeLocalToISO(data.data_fim),
+          // ✅ Converter string vazia de turno para null (schema aceita null/undefined, mas não string vazia)
+          turno: data.turno === '' || data.turno === undefined ? undefined : data.turno
         }
       } catch (conversionError: any) {
         // Se já estiver em formato ISO (pode acontecer em alguns casos), usar diretamente

@@ -13,6 +13,7 @@ interface ScaleRowSectorProps {
   ehPreEscala: boolean
   onAddShift: (setorId: string, dia: number) => void
   onEditShift: (alocacao: EscalaAlocacaoCompleta) => void
+  mostrarColunaSetor?: boolean
 }
 
 export function ScaleRowSector({
@@ -23,7 +24,8 @@ export function ScaleRowSector({
   alocacoes,
   ehPreEscala,
   onAddShift,
-  onEditShift
+  onEditShift,
+  mostrarColunaSetor = true
 }: ScaleRowSectorProps) {
   // Agrupar alocações por dia
   const alocacoesPorDia = semanas.flat().reduce((acc, dia) => {
@@ -55,25 +57,27 @@ export function ScaleRowSector({
   }
   
   return (
-    <div className="border-b border-gray-200 dark:border-gray-700 last:border-b-0 relative">
-      {/* Coluna fixa do setor - posicionada de forma absoluta */}
-      <div 
-        className="absolute left-0 top-0 bottom-0 w-[200px] border-r border-gray-200 dark:border-gray-700 p-3 bg-gray-50 dark:bg-gray-900 z-10"
-      >
-        <div className="font-semibold text-gray-900 dark:text-white">
-          {setor.nome}
+    <div className={mostrarColunaSetor ? 'relative' : ''}>
+      {/* Coluna fixa do setor - apenas se solicitado */}
+      {mostrarColunaSetor && (
+        <div 
+          className="absolute left-0 top-0 bottom-0 w-[200px] border-r-2 border-gray-300 dark:border-gray-600 p-3 bg-gray-200 dark:bg-gray-800 z-10"
+        >
+          <div className="font-bold text-base text-gray-900 dark:text-white">
+            {setor.nome}
+          </div>
+          <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+            {setor.hospital.nome}
+          </div>
         </div>
-        <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-          {setor.hospital.nome}
-        </div>
-      </div>
+      )}
       
-      {/* Semanas com margem para a coluna do setor */}
-      <div className="ml-[200px]">
+      {/* Semanas com margem para a coluna do setor (se existir) */}
+      <div className={mostrarColunaSetor ? 'ml-[200px]' : ''}>
         {semanas.map((semana, semanaIndex) => (
           <div 
             key={semanaIndex}
-            className="grid border-b border-gray-200 dark:border-gray-700 last:border-b-0"
+            className="grid"
             style={{
               gridTemplateColumns: 'repeat(7, 1fr)'
             }}
@@ -83,7 +87,8 @@ export function ScaleRowSector({
               const diaSemana = obterDiaSemana(dia)
               const ehFimDeSemana = diaSemana === 0 || diaSemana === 6
               const ehDiaForaMes = dia === null
-              const ehUltimaColuna = diaIndex === semana.length - 1
+              // Zebrado: colunas pares (0, 2, 4, 6) têm fundo A, ímpares (1, 3, 5) têm fundo B
+              const ehColunaPar = diaIndex % 2 === 0
               
               return (
                 <ScaleDayCell
@@ -95,6 +100,7 @@ export function ScaleRowSector({
                   ehFimDeSemana={ehFimDeSemana}
                   ehDiaForaMes={ehDiaForaMes}
                   dia={dia}
+                  ehColunaPar={ehColunaPar}
                 />
               )
             })}

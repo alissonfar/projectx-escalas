@@ -26,9 +26,9 @@ export function StateIndicator({ estado, onPublicar, onDespublicar, loading }: S
             <button
               onClick={onPublicar}
               disabled={loading}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium shadow-md"
             >
-              {loading ? 'Publicando...' : 'Publicar Mês'}
+              {loading ? 'Publicando...' : 'Publicar Escala'}
             </button>
           )}
         </>
@@ -44,9 +44,9 @@ export function StateIndicator({ estado, onPublicar, onDespublicar, loading }: S
             <button
               onClick={onDespublicar}
               disabled={loading}
-              className="px-4 py-2 bg-yellow-600 text-white rounded-md hover:bg-yellow-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+              className="px-4 py-2 bg-yellow-600 text-white rounded-md hover:bg-yellow-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium shadow-md"
             >
-              {loading ? 'Despublicando...' : 'Despublicar (voltar para edição)'}
+              {loading ? 'Despublicando...' : 'Despublicar para Editar'}
             </button>
           )}
         </>
