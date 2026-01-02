@@ -13,6 +13,7 @@ import { Alert } from '@/components/ui/alert'
 import { buscarSetoresParaSelect, buscarProfissionaisParaSelect, verificarConflitos } from '@/lib/actions/escalas'
 import { format } from 'date-fns'
 import { cn } from '@/lib/utils'
+import { formatBrasiliaDateTime } from '@/lib/utils/datetime'
 import type { Escala } from '@/types/database'
 
 interface EscalaFormProps {
@@ -198,8 +199,8 @@ export function EscalaForm({
             <ul className="list-disc list-inside text-sm text-yellow-700 dark:text-yellow-300 space-y-1">
               {conflitos.map((c) => (
                 <li key={c.id}>
-                  {format(new Date(c.data_inicio), "dd/MM/yyyy 'às' HH:mm")} até{' '}
-                  {format(new Date(c.data_fim), "dd/MM/yyyy 'às' HH:mm")}
+                  {formatBrasiliaDateTime(c.data_inicio, 'dd/MM/yyyy HH:mm').replace(' ', ' às ')} até{' '}
+                  {formatBrasiliaDateTime(c.data_fim, 'dd/MM/yyyy HH:mm').replace(' ', ' às ')}
                 </li>
               ))}
             </ul>

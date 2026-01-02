@@ -1,6 +1,6 @@
 'use client'
 
-import { format } from 'date-fns'
+import { formatBrasiliaDateTime } from '@/lib/utils/datetime'
 import type { EscalaAlocacaoCompleta } from '@/types/database'
 
 interface ShiftCardProps {
@@ -17,8 +17,9 @@ const TURNO_COLORS = {
 }
 
 export function ShiftCard({ alocacao, ehPreEscala, onClick }: ShiftCardProps) {
-  const horaInicio = format(new Date(alocacao.data_inicio), 'HH:mm')
-  const horaFim = format(new Date(alocacao.data_fim), 'HH:mm')
+  // Formatar horários em timezone de Brasília
+  const horaInicio = formatBrasiliaDateTime(alocacao.data_inicio, 'HH:mm')
+  const horaFim = formatBrasiliaDateTime(alocacao.data_fim, 'HH:mm')
   const corTurno = TURNO_COLORS[alocacao.turno] || TURNO_COLORS.integral
   
   return (

@@ -300,13 +300,19 @@ export function EscalaList({ escalas }: EscalaListProps) {
       accessorKey: 'data_inicio',
       header: 'Início',
       sortable: true,
-      cell: (row) => format(new Date(row.data_inicio), "dd/MM/yyyy 'às' HH:mm")
+      cell: (row) => {
+        const formatted = formatBrasiliaDateTime(row.data_inicio, 'dd/MM/yyyy HH:mm')
+        return formatted.replace(' ', ' às ')
+      }
     },
     {
       accessorKey: 'data_fim',
       header: 'Fim',
       sortable: true,
-      cell: (row) => format(new Date(row.data_fim), "dd/MM/yyyy 'às' HH:mm")
+      cell: (row) => {
+        const formatted = formatBrasiliaDateTime(row.data_fim, 'dd/MM/yyyy HH:mm')
+        return formatted.replace(' ', ' às ')
+      }
     },
     {
       accessorKey: 'status',

@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label'
 import { Dialog, Transition } from '@headlessui/react'
 import { Fragment } from 'react'
 import type { EscalaAlocacaoCompleta } from '@/types/database'
+import { datetimeLocalToISO, isoToDateTimeLocal, createBrasiliaDateTime } from '@/lib/utils/datetime'
 
 interface AddShiftModalProps {
   open: boolean
@@ -54,18 +55,22 @@ export function AddShiftModal({
   })
   
   const [internalLoading, setInternalLoading] = useState(false)
+  const [conversionError, setConversionError] = useState<string | null>(null)
   
   // Se não está editando e tem dia inicial, configurar datas padrão
   useEffect(() => {
     if (!editMode && diaInicial && mesAno && !initialData) {
-      const dataBase = new Date(mesAno.ano, mesAno.mes - 1, diaInicial)
+      // Criar datas em horário de Brasília (8h e 16h)
+      // Usar formato datetime-local diretamente (já está em Brasília)
+      const inicioISO = createBrasiliaDateTime(mesAno.ano, mesAno.mes, diaInicial, 8, 0)
+      const fimISO = createBrasiliaDateTime(mesAno.ano, mesAno.mes, diaInicial, 16, 0)
       
-      // Horário padrão: 8h às 16h
-      const inicio = setSeconds(setMinutes(setHours(dataBase, 8), 0), 0)
-      const fim = setSeconds(setMinutes(setHours(dataBase, 16), 0), 0)
+      // Converter ISO para datetime-local para exibição no input
+      const inicioLocal = isoToDateTimeLocal(inicioISO)
+      const fimLocal = isoToDateTimeLocal(fimISO)
       
-      setValue('data_inicio', format(inicio, "yyyy-MM-dd'T'HH:mm"))
-      setValue('data_fim', format(fim, "yyyy-MM-dd'T'HH:mm"))
+      setValue('data_inicio', inicioLocal)
+      setValue('data_fim', fimLocal)
     }
   }, [diaInicial, mesAno, editMode, initialData, setValue])
   
@@ -75,7 +80,15 @@ export function AddShiftModal({
       Object.entries(initialData).forEach(([key, value]) => {
         if (value !== undefined) {
           if (key === 'data_inicio' || key === 'data_fim') {
-            setValue(key as any, format(new Date(value), "yyyy-MM-dd'T'HH:mm"))
+            // Converter ISO para datetime-local (horário de Brasília)
+            try {
+              const datetimeLocal = isoToDateTimeLocal(value)
+              setValue(key as any, datetimeLocal)
+            } catch (error) {
+              console.error(`Erro ao converter ${key}:`, error)
+              // Fallback: tentar formatar diretamente
+              setValue(key as any, format(new Date(value), "yyyy-MM-dd'T'HH:mm"))
+            }
           } else {
             setValue(key as any, value)
           }
@@ -86,8 +99,49 @@ export function AddShiftModal({
   
   const handleFormSubmit = async (data: ShiftFormData) => {
     setInternalLoading(true)
+    setConversionError(null)
+    
     try {
-      await onSubmit(data)
+      // Converter datetime-local para ISO com timezone de Brasília
+      // O input datetime-local retorna formato YYYY-MM-DDTHH:mm (sem timezone)
+      // Precisamos converter para ISO 8601 com timezone de Brasília para o zod aceitar
+      let dataConvertida: ShiftFormData
+      
+      try {
+        // Validar que os campos não estão vazios
+        if (!data.data_inicio || !data.data_fim) {
+          throw new Error('Data/hora de início e fim são obrigatórias')
+        }
+        
+        dataConvertida = {
+          ...data,
+          data_inicio: datetimeLocalToISO(data.data_inicio),
+          data_fim: datetimeLocalToISO(data.data_fim)
+        }
+      } catch (conversionError: any) {
+        // Se já estiver em formato ISO (pode acontecer em alguns casos), usar diretamente
+        // Mas validar que é um formato ISO válido
+        const isISOFormat = (str: string) => {
+          return str.includes('T') && (str.includes('Z') || str.includes('+') || (str.match(/-/g) || []).length >= 3)
+        }
+        
+        if (isISOFormat(data.data_inicio) && isISOFormat(data.data_fim)) {
+          // Parece ser ISO, usar diretamente
+          dataConvertida = data
+        } else {
+          // Erro real na conversão
+          const errorMessage = conversionError.message || 'Formato de data/hora inválido. Por favor, verifique os campos.'
+          setConversionError(errorMessage)
+          return // Não enviar se houver erro de conversão
+        }
+      }
+      
+      await onSubmit(dataConvertida)
+    } catch (error: any) {
+      console.error('Erro ao processar formulário:', error)
+      // O erro será tratado pelo componente pai através do estado de error
+      // Mas também podemos exibir aqui se necessário
+      setConversionError(error.message || 'Erro ao processar formulário')
     } finally {
       setInternalLoading(false)
     }
@@ -144,6 +198,13 @@ export function AddShiftModal({
                 </Dialog.Title>
 
                 <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
+                  {/* Erro de conversão */}
+                  {conversionError && (
+                    <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3">
+                      <p className="text-sm text-red-800 dark:text-red-400">{conversionError}</p>
+                    </div>
+                  )}
+                  
                   {/* Profissional */}
                   <div>
                     <Label htmlFor="profissional_id">Profissional *</Label>
