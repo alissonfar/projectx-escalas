@@ -59,6 +59,11 @@ export async function criarProfissional(data: ProfissionalFormData): Promise<Act
         nome: validated.nome.trim(),
         email: validated.email.trim().toLowerCase(),
         telefone: validated.telefone?.trim() || null,
+        telefone2: validated.telefone2?.trim() || null,
+        data_nascimento: validated.data_nascimento || null,
+        profissao: validated.profissao || null,
+        crefito: (validated as any).crefito?.trim() || null,
+        uf_crefito: (validated as any).uf_crefito || null,
         grupo_id: validated.grupo_id,
         ativo: true,
       })
@@ -131,6 +136,11 @@ export async function atualizarProfissional(id: string, data: ProfissionalFormDa
         nome: validated.nome.trim(),
         email: validated.email.trim().toLowerCase(),
         telefone: validated.telefone?.trim() || null,
+        telefone2: validated.telefone2?.trim() || null,
+        data_nascimento: validated.data_nascimento || null,
+        profissao: validated.profissao || null,
+        crefito: (validated as any).crefito?.trim() || null,
+        uf_crefito: (validated as any).uf_crefito || null,
         grupo_id: validated.grupo_id,
       })
       .eq('id', id)

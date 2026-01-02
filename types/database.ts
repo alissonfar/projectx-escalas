@@ -105,6 +105,11 @@ export type Profissional = {
   nome: string
   email: string
   telefone: string | null
+  telefone2: string | null
+  data_nascimento: string | null
+  profissao: string | null
+  crefito: string | null
+  uf_crefito: string | null
   ativo: boolean
   created_at: string
 }

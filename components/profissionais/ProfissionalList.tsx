@@ -183,6 +183,11 @@ export function ProfissionalList({ profissionais }: ProfissionalListProps) {
           nome: editingProfissional.nome,
           email: editingProfissional.email,
           telefone: editingProfissional.telefone || '',
+          telefone2: editingProfissional.telefone2 || '',
+          data_nascimento: editingProfissional.data_nascimento || '',
+          profissao: editingProfissional.profissao || '',
+          crefito: editingProfissional.crefito || '',
+          uf_crefito: editingProfissional.uf_crefito || '',
           grupo_id: editingProfissional.grupo_id
         } : undefined}
         loading={loading}
