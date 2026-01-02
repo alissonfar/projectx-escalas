@@ -67,3 +67,4 @@ COMMENT ON FUNCTION check_profissional_has_future_escalas(UUID) IS
 
 
 
+

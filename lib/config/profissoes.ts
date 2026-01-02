@@ -126,3 +126,4 @@ export function obterCamposProfissao(profissaoId: string): CampoProfissional[] {
   return config?.campos || []
 }
 
+

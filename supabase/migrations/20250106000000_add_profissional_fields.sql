@@ -56,3 +56,4 @@ CREATE INDEX IF NOT EXISTS idx_profissionais_crefito
 ON public.profissionais(crefito) 
 WHERE crefito IS NOT NULL;
 
+
