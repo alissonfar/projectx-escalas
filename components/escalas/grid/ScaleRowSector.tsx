@@ -76,39 +76,46 @@ export function ScaleRowSector({
       
       {/* Semanas com margem para a coluna do setor (se existir) */}
       <div className={mostrarColunaSetor ? 'ml-[200px]' : ''}>
-        {semanas.map((semana, semanaIndex) => (
-          <div 
-            key={semanaIndex}
-            className="grid"
-            style={{
-              gridTemplateColumns: 'repeat(7, 1fr)'
-            }}
-          >
-            {/* Células de dias da semana (7 colunas fixas) */}
-            {semana.map((dia, diaIndex) => {
-              const diaSemana = obterDiaSemana(dia)
-              const ehFimDeSemana = diaSemana === 0 || diaSemana === 6
-              const ehDiaForaMes = dia === null
-              // Zebrado: colunas pares (0, 2, 4, 6) têm fundo A, ímpares (1, 3, 5) têm fundo B
-              const ehColunaPar = diaIndex % 2 === 0
-              
-              return (
-                <ScaleDayCell
-                  key={`${semanaIndex}-${diaIndex}`}
-                  alocacoes={dia !== null ? (alocacoesPorDia[dia] || []) : []}
-                  ehPreEscala={ehPreEscala}
-                  onAddShift={() => dia !== null && onAddShift(setor.id, dia)}
-                  onEditShift={onEditShift}
-                  ehFimDeSemana={ehFimDeSemana}
-                  ehDiaForaMes={ehDiaForaMes}
-                  dia={dia}
-                  ehColunaPar={ehColunaPar}
-                  modoCompacto={modoCompacto}
-                />
-              )
-            })}
-          </div>
-        ))}
+        {semanas.map((semana, semanaIndex) => {
+          const ehUltimaSemana = semanaIndex === semanas.length - 1
+          
+          return (
+            <div 
+              key={semanaIndex}
+              className={`
+                grid
+                ${!ehUltimaSemana ? 'border-b border-gray-300 dark:border-gray-600' : ''}
+              `}
+              style={{
+                gridTemplateColumns: 'repeat(7, 1fr)'
+              }}
+            >
+              {/* Células de dias da semana (7 colunas fixas) */}
+              {semana.map((dia, diaIndex) => {
+                const diaSemana = obterDiaSemana(dia)
+                const ehFimDeSemana = diaSemana === 0 || diaSemana === 6
+                const ehDiaForaMes = dia === null
+                // Zebrado: colunas pares (0, 2, 4, 6) têm fundo A, ímpares (1, 3, 5) têm fundo B
+                const ehColunaPar = diaIndex % 2 === 0
+                
+                return (
+                  <ScaleDayCell
+                    key={`${semanaIndex}-${diaIndex}`}
+                    alocacoes={dia !== null ? (alocacoesPorDia[dia] || []) : []}
+                    ehPreEscala={ehPreEscala}
+                    onAddShift={() => dia !== null && onAddShift(setor.id, dia)}
+                    onEditShift={onEditShift}
+                    ehFimDeSemana={ehFimDeSemana}
+                    ehDiaForaMes={ehDiaForaMes}
+                    dia={dia}
+                    ehColunaPar={ehColunaPar}
+                    modoCompacto={modoCompacto}
+                  />
+                )
+              })}
+            </div>
+          )
+        })}
       </div>
     </div>
   )
