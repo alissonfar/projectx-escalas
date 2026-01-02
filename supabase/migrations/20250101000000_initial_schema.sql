@@ -1,12 +1,9 @@
 -- Migration inicial baseada no PRD
 -- Cria todas as tabelas do modelo de dados
 
--- Extensões
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-
 -- Tabela: organizacoes
 CREATE TABLE IF NOT EXISTS public.organizacoes (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     nome TEXT NOT NULL,
     criado_por UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
     ativo BOOLEAN DEFAULT true,
@@ -15,7 +12,7 @@ CREATE TABLE IF NOT EXISTS public.organizacoes (
 
 -- Tabela: hospitals
 CREATE TABLE IF NOT EXISTS public.hospitais (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     organizacao_id UUID NOT NULL REFERENCES public.organizacoes(id) ON DELETE CASCADE,
     nome TEXT NOT NULL,
     ativo BOOLEAN DEFAULT true,
@@ -26,7 +23,7 @@ CREATE TABLE IF NOT EXISTS public.hospitais (
 -- Grupos pertencem à organização, não ao hospital
 -- Permite que profissionais de um grupo trabalhem em qualquer hospital da organização
 CREATE TABLE IF NOT EXISTS public.grupos (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     organizacao_id UUID NOT NULL REFERENCES public.organizacoes(id) ON DELETE CASCADE,
     nome TEXT NOT NULL,
     tipo TEXT NOT NULL,
@@ -36,7 +33,7 @@ CREATE TABLE IF NOT EXISTS public.grupos (
 
 -- Tabela: setores
 CREATE TABLE IF NOT EXISTS public.setores (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     hospital_id UUID NOT NULL REFERENCES public.hospitais(id) ON DELETE CASCADE,
     nome TEXT NOT NULL,
     ativo BOOLEAN DEFAULT true,
@@ -45,7 +42,7 @@ CREATE TABLE IF NOT EXISTS public.setores (
 
 -- Tabela: profissionais
 CREATE TABLE IF NOT EXISTS public.profissionais (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     grupo_id UUID NOT NULL REFERENCES public.grupos(id) ON DELETE CASCADE,
     nome TEXT NOT NULL,
     email TEXT NOT NULL,
@@ -56,7 +53,7 @@ CREATE TABLE IF NOT EXISTS public.profissionais (
 
 -- Tabela: escalas
 CREATE TABLE IF NOT EXISTS public.escalas (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     setor_id UUID NOT NULL REFERENCES public.setores(id) ON DELETE CASCADE,
     profissional_id UUID NOT NULL REFERENCES public.profissionais(id) ON DELETE CASCADE,
     data_inicio TIMESTAMPTZ NOT NULL,

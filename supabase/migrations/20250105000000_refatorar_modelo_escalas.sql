@@ -24,7 +24,7 @@ DROP TABLE IF EXISTS public.escalas CASCADE;
 -- ============================================================================
 
 CREATE TABLE IF NOT EXISTS public.escalas (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     setor_id UUID NOT NULL REFERENCES public.setores(id) ON DELETE CASCADE,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
@@ -48,7 +48,7 @@ CREATE INDEX IF NOT EXISTS idx_escalas_setor ON public.escalas(setor_id);
 -- ============================================================================
 
 CREATE TABLE IF NOT EXISTS public.escala_periodos (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     escala_id UUID NOT NULL REFERENCES public.escalas(id) ON DELETE CASCADE,
     mes INTEGER NOT NULL CHECK (mes >= 1 AND mes <= 12),
     ano INTEGER NOT NULL CHECK (ano >= 2020 AND ano <= 2100),
@@ -98,7 +98,7 @@ CREATE INDEX IF NOT EXISTS idx_escala_periodos_versao ON public.escala_periodos(
 -- ============================================================================
 
 CREATE TABLE IF NOT EXISTS public.escala_alocacoes (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     periodo_id UUID NOT NULL REFERENCES public.escala_periodos(id) ON DELETE CASCADE,
     profissional_id UUID NOT NULL REFERENCES public.profissionais(id) ON DELETE CASCADE,
     data_inicio TIMESTAMPTZ NOT NULL,
