@@ -7,6 +7,7 @@ interface ShiftCardProps {
   alocacao: EscalaAlocacaoCompleta
   ehPreEscala: boolean
   onClick?: () => void
+  modoCompacto?: boolean
 }
 
 const TURNO_COLORS = {
@@ -16,7 +17,7 @@ const TURNO_COLORS = {
   integral: 'bg-purple-100 dark:bg-purple-900/30 border-purple-300 dark:border-purple-700',
 }
 
-export function ShiftCard({ alocacao, ehPreEscala, onClick }: ShiftCardProps) {
+export function ShiftCard({ alocacao, ehPreEscala, onClick, modoCompacto = false }: ShiftCardProps) {
   // Formatar horários em timezone de Brasília
   const horaInicio = formatBrasiliaDateTime(alocacao.data_inicio, 'HH:mm')
   const horaFim = formatBrasiliaDateTime(alocacao.data_fim, 'HH:mm')
@@ -26,9 +27,10 @@ export function ShiftCard({ alocacao, ehPreEscala, onClick }: ShiftCardProps) {
     <div
       className={`
         ${corTurno}
-        border rounded p-2 mb-1 text-xs cursor-pointer
+        border rounded cursor-pointer
         hover:shadow-md transition-shadow
         ${ehPreEscala ? 'hover:border-blue-500' : ''}
+        ${modoCompacto ? 'p-1 text-[10px]' : 'p-1.5 text-xs'}
       `}
       onClick={onClick}
       title={ehPreEscala ? 'Clique para editar' : 'Somente leitura (publicado)'}
@@ -36,13 +38,13 @@ export function ShiftCard({ alocacao, ehPreEscala, onClick }: ShiftCardProps) {
       <div className="font-semibold text-gray-900 dark:text-white truncate">
         {alocacao.profissional.nome}
       </div>
-      <div className="text-gray-600 dark:text-gray-300 flex items-center justify-between mt-1">
+      <div className={`text-gray-600 dark:text-gray-300 flex items-center justify-between ${modoCompacto ? 'mt-0.5' : 'mt-1'}`}>
         <span>{horaInicio} - {horaFim}</span>
-        <span className="text-[10px] uppercase font-medium">
+        <span className={`uppercase font-medium ${modoCompacto ? 'text-[9px]' : 'text-[10px]'}`}>
           {alocacao.turno}
         </span>
       </div>
-      {alocacao.observacoes && (
+      {alocacao.observacoes && !modoCompacto && (
         <div className="text-gray-500 dark:text-gray-400 text-[10px] mt-1 truncate" title={alocacao.observacoes}>
           {alocacao.observacoes}
         </div>

@@ -15,6 +15,7 @@ interface ScaleGridProps {
   onPublicar: (setorId: string) => void
   onDespublicar: (setorId: string) => void
   loading?: boolean
+  modoCompacto?: boolean
 }
 
 export function ScaleGrid({
@@ -28,16 +29,17 @@ export function ScaleGrid({
   onEditShift,
   onPublicar,
   onDespublicar,
-  loading = false
+  loading = false,
+  modoCompacto = false
 }: ScaleGridProps) {
   return (
-    <div className="h-full overflow-y-auto overflow-x-hidden">
+    <div className="h-full overflow-y-auto overflow-x-hidden" data-scale-container>
       {setores.length === 0 ? (
         <div className="flex items-center justify-center h-full">
           <p className="text-gray-500 dark:text-gray-400">Nenhum setor encontrado</p>
         </div>
       ) : (
-        <div className="py-4">
+        <div className={modoCompacto ? 'py-2' : 'py-4'}>
           {setores.map((setor) => (
             <EscalaCard
               key={setor.id}
@@ -52,6 +54,7 @@ export function ScaleGrid({
               onPublicar={onPublicar}
               onDespublicar={onDespublicar}
               loading={loading}
+              modoCompacto={modoCompacto}
             />
           ))}
         </div>

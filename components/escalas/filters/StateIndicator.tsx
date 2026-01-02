@@ -7,46 +7,57 @@ interface StateIndicatorProps {
   onPublicar?: () => void
   onDespublicar?: () => void
   loading?: boolean
+  modoCompacto?: boolean
 }
 
-export function StateIndicator({ estado, onPublicar, onDespublicar, loading }: StateIndicatorProps) {
+export function StateIndicator({ estado, onPublicar, onDespublicar, loading, modoCompacto = false }: StateIndicatorProps) {
   const ehPreEscala = estado === 'pre_escala'
   
   return (
-    <div className="flex items-center gap-3">
+    <div className={`flex items-center ${modoCompacto ? 'gap-1.5' : 'gap-2'}`}>
       {ehPreEscala ? (
         <>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-yellow-500 animate-pulse" />
-            <span className="text-sm font-medium text-yellow-700 dark:text-yellow-400">
-              Pré-escala (editável)
-            </span>
-          </div>
+          {!modoCompacto && (
+            <div className="flex items-center gap-1.5">
+              <div className="w-2.5 h-2.5 rounded-full bg-yellow-500 animate-pulse" />
+              <span className="text-xs font-medium text-yellow-700 dark:text-yellow-400">
+                Pré-escala
+              </span>
+            </div>
+          )}
           {onPublicar && (
             <button
               onClick={onPublicar}
               disabled={loading}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium shadow-md"
+              className={`
+                bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium shadow-md
+                ${modoCompacto ? 'px-2 py-1 text-xs' : 'px-3 py-1.5 text-sm'}
+              `}
             >
-              {loading ? 'Publicando...' : 'Publicar Escala'}
+              {loading ? '...' : modoCompacto ? 'Publicar' : 'Publicar Escala'}
             </button>
           )}
         </>
       ) : (
         <>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-green-500" />
-            <span className="text-sm font-medium text-green-700 dark:text-green-400">
-              Publicada (somente leitura)
-            </span>
-          </div>
+          {!modoCompacto && (
+            <div className="flex items-center gap-1.5">
+              <div className="w-2.5 h-2.5 rounded-full bg-green-500" />
+              <span className="text-xs font-medium text-green-700 dark:text-green-400">
+                Publicada
+              </span>
+            </div>
+          )}
           {onDespublicar && (
             <button
               onClick={onDespublicar}
               disabled={loading}
-              className="px-4 py-2 bg-yellow-600 text-white rounded-md hover:bg-yellow-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium shadow-md"
+              className={`
+                bg-yellow-600 text-white rounded-md hover:bg-yellow-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium shadow-md
+                ${modoCompacto ? 'px-2 py-1 text-xs' : 'px-3 py-1.5 text-sm'}
+              `}
             >
-              {loading ? 'Despublicando...' : 'Despublicar para Editar'}
+              {loading ? '...' : modoCompacto ? 'Editar' : 'Despublicar'}
             </button>
           )}
         </>

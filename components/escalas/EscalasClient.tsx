@@ -92,6 +92,10 @@ export function EscalasClient({ setoresIniciais, mesInicial, anoInicial }: Escal
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   
+  // Estados de otimização de layout
+  const [headerCollapsed, setHeaderCollapsed] = useState(false)
+  const [modoCompacto, setModoCompacto] = useState(false)
+  
   // Filtrar setores baseado na seleção
   const setoresFiltrados = useMemo(() => {
     if (setoresSelecionados.length === 0) {
@@ -360,53 +364,124 @@ export function EscalasClient({ setoresIniciais, mesInicial, anoInicial }: Escal
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [setores])
   
+  // Auto-colapsar header ao scroll (se não estiver em modo compacto)
+  useEffect(() => {
+    if (modoCompacto) {
+      setHeaderCollapsed(true)
+      return
+    }
+    
+    const handleScroll = () => {
+      const scrollContainer = document.querySelector('[data-scale-container]')
+      if (scrollContainer) {
+        const scrollTop = scrollContainer.scrollTop
+        setHeaderCollapsed(scrollTop > 50)
+      }
+    }
+    
+    // Usar timeout para garantir que o elemento existe
+    const timeoutId = setTimeout(() => {
+      const scrollContainer = document.querySelector('[data-scale-container]')
+      if (scrollContainer) {
+        scrollContainer.addEventListener('scroll', handleScroll, { passive: true })
+      }
+    }, 100)
+    
+    return () => {
+      clearTimeout(timeoutId)
+      const scrollContainer = document.querySelector('[data-scale-container]')
+      scrollContainer?.removeEventListener('scroll', handleScroll)
+    }
+  }, [modoCompacto])
+
   return (
     <div className="flex flex-col h-full">
-      {/* Header fixo */}
-      <div className="flex-shrink-0 space-y-4 p-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Escalas</h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-1">
-              Gerencie as escalas de plantão por período
+      {/* Header colapsável */}
+      <div 
+        className={`
+          flex-shrink-0 transition-all duration-300 ease-in-out
+          ${headerCollapsed ? 'space-y-2 py-2 px-4' : 'space-y-3 py-3 px-4'}
+          ${modoCompacto ? 'space-y-1 py-1 px-2' : ''}
+          border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800
+        `}
+      >
+        {/* Título e controles principais */}
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3 flex-1 min-w-0">
+            {!headerCollapsed && (
+              <div className="flex-shrink-0">
+                <h1 className={`font-bold text-gray-900 dark:text-white ${modoCompacto ? 'text-lg' : 'text-xl'}`}>
+                  Escalas
+                </h1>
+                {!modoCompacto && (
+                  <p className="text-xs text-gray-600 dark:text-gray-400 mt-0.5">
+                    Gerencie as escalas de plantão por período
+                  </p>
+                )}
+              </div>
+            )}
+            
+            {/* Controles compactos */}
+            <div className={`flex items-center gap-2 flex-wrap ${modoCompacto ? 'gap-1.5' : 'gap-3'}`}>
+              <SectorSelector
+                setores={setores}
+                selectedSetores={setoresSelecionados}
+                onChange={setSetoresSelecionados}
+              />
+              <MonthSelector mes={mes} ano={ano} onChange={handleMudaMes} />
+              <ViewModeSelector
+                modo={modo}
+                semana={semanaAtual}
+                totalSemanas={totalSemanas}
+                onChange={setModo}
+                onSemanaChange={setSemanaAtual}
+              />
+            </div>
+          </div>
+          
+          {/* Botão de modo compacto */}
+          <button
+            onClick={() => {
+              setModoCompacto(!modoCompacto)
+              if (!modoCompacto) {
+                setHeaderCollapsed(true)
+              }
+            }}
+            className={`
+              flex-shrink-0 px-3 py-1.5 rounded-md border transition-colors
+              ${modoCompacto 
+                ? 'bg-blue-600 border-blue-600 text-white' 
+                : 'bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+              }
+              text-xs font-medium
+            `}
+            title={modoCompacto ? 'Modo normal' : 'Modo compacto'}
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+        </div>
+        
+        {/* Mensagens compactas */}
+        {(error || success) && (
+          <div className={`
+            ${error ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800' : 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'}
+            border rounded px-3 py-1.5
+            ${modoCompacto ? 'text-xs' : 'text-sm'}
+          `}>
+            <p className={error ? 'text-red-800 dark:text-red-400' : 'text-green-800 dark:text-green-400'}>
+              {error || success}
             </p>
           </div>
-        </div>
-        
-        {/* Mensagens */}
-        {error && (
-          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
-            <p className="text-sm text-red-800 dark:text-red-400">{error}</p>
-          </div>
         )}
-        {success && (
-          <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
-            <p className="text-sm text-green-800 dark:text-green-400">{success}</p>
-          </div>
-        )}
-        
-        {/* Controles */}
-        <div className="flex items-center justify-between bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
-          <div className="flex items-center gap-4 flex-wrap">
-            <SectorSelector
-              setores={setores}
-              selectedSetores={setoresSelecionados}
-              onChange={setSetoresSelecionados}
-            />
-            <MonthSelector mes={mes} ano={ano} onChange={handleMudaMes} />
-            <ViewModeSelector
-              modo={modo}
-              semana={semanaAtual}
-              totalSemanas={totalSemanas}
-              onChange={setModo}
-              onSemanaChange={setSemanaAtual}
-            />
-          </div>
-        </div>
       </div>
       
       {/* Grid ocupa espaço restante (full-screen) */}
-      <div className="flex-1 overflow-hidden px-6 pb-6">
+      <div 
+        className="flex-1 overflow-hidden px-4 pb-4"
+        data-scale-container
+      >
         {loading && Object.keys(alocacoesPorSetor).length === 0 ? (
           <div className="flex items-center justify-center h-full">
             <p className="text-gray-500 dark:text-gray-400">Carregando...</p>
@@ -436,6 +511,7 @@ export function EscalasClient({ setoresIniciais, mesInicial, anoInicial }: Escal
               onPublicar={handlePublicarSetor}
               onDespublicar={handleDespublicarSetor}
               loading={loading}
+              modoCompacto={modoCompacto}
             />
           )
         )}

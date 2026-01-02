@@ -13,6 +13,7 @@ interface ScaleDayCellProps {
   ehDiaForaMes?: boolean
   dia?: number | null
   ehColunaPar?: boolean
+  modoCompacto?: boolean
 }
 
 export function ScaleDayCell({ 
@@ -23,14 +24,16 @@ export function ScaleDayCell({
   ehFimDeSemana,
   ehDiaForaMes = false,
   dia,
-  ehColunaPar = true
+  ehColunaPar = true,
+  modoCompacto = false
 }: ScaleDayCellProps) {
   if (ehDiaForaMes) {
     return (
       <div 
         className={`
-          min-w-0 p-2 border-r-2 border-gray-300 dark:border-gray-600 
+          min-w-0 border-r-2 border-gray-300 dark:border-gray-600 
           bg-gray-100 dark:bg-gray-900/50
+          ${modoCompacto ? 'p-1' : 'p-2'}
         `}
       />
     )
@@ -53,20 +56,24 @@ export function ScaleDayCell({
   return (
     <div 
       className={`
-        min-w-0 p-2 border-r-2 border-gray-300 dark:border-gray-600 last:border-r-0
-        min-h-[120px] h-full flex flex-col
+        min-w-0 border-r-2 border-gray-300 dark:border-gray-600 last:border-r-0
+        h-full flex flex-col
         ${bgColor}
+        ${modoCompacto ? 'p-1 min-h-[80px]' : 'p-1.5 min-h-[120px]'}
       `}
     >
       {/* Número do dia no topo - destacado */}
       {dia !== null && dia !== undefined && (
-        <div className="text-lg font-bold text-gray-900 dark:text-white mb-2 flex-shrink-0">
+        <div className={`
+          font-bold text-gray-900 dark:text-white flex-shrink-0
+          ${modoCompacto ? 'text-sm mb-1' : 'text-base mb-1.5'}
+        `}>
           {dia}
         </div>
       )}
       
       {/* Container scrollável para alocações */}
-      <div className="flex-1 overflow-y-auto space-y-1 min-h-0">
+      <div className={`flex-1 overflow-y-auto min-h-0 ${modoCompacto ? 'space-y-0.5' : 'space-y-1'}`}>
         {/* Alocações existentes */}
         {alocacoes.map((alocacao) => (
           <ShiftCard
@@ -74,12 +81,13 @@ export function ScaleDayCell({
             alocacao={alocacao}
             ehPreEscala={ehPreEscala}
             onClick={() => ehPreEscala && onEditShift(alocacao)}
+            modoCompacto={modoCompacto}
           />
         ))}
         
         {/* Botão para adicionar (apenas se pré-escala) */}
         {ehPreEscala && (
-          <AddShiftButton onClick={onAddShift} />
+          <AddShiftButton onClick={onAddShift} modoCompacto={modoCompacto} />
         )}
       </div>
     </div>

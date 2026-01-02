@@ -17,6 +17,7 @@ interface EscalaCardProps {
   onPublicar: (setorId: string) => void
   onDespublicar: (setorId: string) => void
   loading?: boolean
+  modoCompacto?: boolean
 }
 
 export function EscalaCard({
@@ -30,29 +31,42 @@ export function EscalaCard({
   onEditShift,
   onPublicar,
   onDespublicar,
-  loading = false
+  loading = false,
+  modoCompacto = false
 }: EscalaCardProps) {
   const ehPreEscala = estado === 'pre_escala'
 
   return (
-    <div className="bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600 rounded-lg shadow-lg mb-6 overflow-hidden flex flex-col">
+    <div className={`
+      bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600 rounded-lg shadow-lg overflow-hidden flex flex-col
+      ${modoCompacto ? 'mb-3' : 'mb-6'}
+    `}>
       {/* Cabeçalho da escala com informações do setor e botão de publicação */}
-      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-700 dark:to-gray-800 border-b-2 border-gray-300 dark:border-gray-600 px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div className="flex-1">
-            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-1">
+      <div className={`
+        bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-700 dark:to-gray-800 border-b-2 border-gray-300 dark:border-gray-600
+        ${modoCompacto ? 'px-3 py-2' : 'px-4 py-3'}
+      `}>
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex-1 min-w-0">
+            <h3 className={`
+              font-bold text-gray-900 dark:text-white truncate
+              ${modoCompacto ? 'text-base' : 'text-lg'}
+            `}>
               {setor.nome}
             </h3>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              {setor.hospital.nome}
-            </p>
+            {!modoCompacto && (
+              <p className="text-xs text-gray-600 dark:text-gray-400 truncate">
+                {setor.hospital.nome}
+              </p>
+            )}
           </div>
-          <div className="flex-shrink-0 ml-4">
+          <div className="flex-shrink-0">
             <StateIndicator
               estado={estado}
               onPublicar={() => onPublicar(setor.id)}
               onDespublicar={() => onDespublicar(setor.id)}
               loading={loading}
+              modoCompacto={modoCompacto}
             />
           </div>
         </div>
@@ -62,7 +76,7 @@ export function EscalaCard({
       <div className="flex-1 overflow-hidden flex flex-col">
         {/* Header com dias da semana - fixo (sem coluna de setor) */}
         <div className="flex-shrink-0">
-          <ScaleHeader mes={mes} ano={ano} semanas={semanas} mostrarColunaSetor={false} />
+          <ScaleHeader mes={mes} ano={ano} semanas={semanas} mostrarColunaSetor={false} modoCompacto={modoCompacto} />
         </div>
         
         {/* Linha do setor - scrollável verticalmente */}
@@ -77,6 +91,7 @@ export function EscalaCard({
             onAddShift={onAddShift}
             onEditShift={onEditShift}
             mostrarColunaSetor={false}
+            modoCompacto={modoCompacto}
           />
         </div>
       </div>

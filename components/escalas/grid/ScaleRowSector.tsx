@@ -14,6 +14,7 @@ interface ScaleRowSectorProps {
   onAddShift: (setorId: string, dia: number) => void
   onEditShift: (alocacao: EscalaAlocacaoCompleta) => void
   mostrarColunaSetor?: boolean
+  modoCompacto?: boolean
 }
 
 export function ScaleRowSector({
@@ -25,7 +26,8 @@ export function ScaleRowSector({
   ehPreEscala,
   onAddShift,
   onEditShift,
-  mostrarColunaSetor = true
+  mostrarColunaSetor = true,
+  modoCompacto = false
 }: ScaleRowSectorProps) {
   // Agrupar alocações por dia
   const alocacoesPorDia = semanas.flat().reduce((acc, dia) => {
@@ -101,6 +103,7 @@ export function ScaleRowSector({
                   ehDiaForaMes={ehDiaForaMes}
                   dia={dia}
                   ehColunaPar={ehColunaPar}
+                  modoCompacto={modoCompacto}
                 />
               )
             })}
