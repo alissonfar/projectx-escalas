@@ -16,6 +16,7 @@ function SelecionarOrganizacaoContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const isNovo = searchParams.get('novo') === 'true'
+  const confirmado = searchParams.get('confirmado') === 'true'
 
   const [organizacoes, setOrganizacoes] = useState<Organizacao[]>([])
   const [loading, setLoading] = useState(true)
@@ -23,6 +24,7 @@ function SelecionarOrganizacaoContent() {
   const [nomeOrg, setNomeOrg] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [salvando, setSalvando] = useState(false)
+  const [showConfirmacao, setShowConfirmacao] = useState(confirmado)
 
   const carregarOrganizacoes = useCallback(async () => {
     try {
@@ -191,6 +193,40 @@ function SelecionarOrganizacaoContent() {
 
         {/* Card Principal */}
         <div className="bg-white rounded-2xl shadow-2xl p-8 animate-slide-up">
+          {showConfirmacao && (
+            <Alert className="mb-6 bg-green-50 border-green-200 text-green-800">
+              <div className="flex items-start gap-2">
+                <svg
+                  className="w-5 h-5 mt-0.5 flex-shrink-0"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+                <div className="flex-1">
+                  <p className="font-medium mb-1">Email confirmado com sucesso! ✅</p>
+                  <p className="text-sm text-green-700">
+                    Sua conta está ativa. Agora você pode criar ou selecionar uma organização para começar.
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowConfirmacao(false)}
+                  className="text-green-600 hover:text-green-800"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </Alert>
+          )}
+
           {error && (
             <Alert className="mb-6 bg-red-50 border-red-200 text-red-800">
               {error}

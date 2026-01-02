@@ -8,17 +8,23 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Alert } from '@/components/ui/alert'
+import { LoadingSpinner } from '@/components/ui/loading-spinner'
 
 export default function LoginPage() {
   const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
+  const [errorType, setErrorType] = useState<'email_nao_confirmado' | 'credenciais_invalidas' | 'erro_generico' | null>(null)
   const [loading, setLoading] = useState(false)
+  const [resendingEmail, setResendingEmail] = useState(false)
+  const [resendSuccess, setResendSuccess] = useState(false)
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
+    setErrorType(null)
+    setResendSuccess(false)
     setLoading(true)
 
     try {
@@ -29,7 +35,23 @@ export default function LoginPage() {
       })
 
       if (signInError) {
-        setError('Email ou senha incorretos')
+        // Verificar se o erro é por email não confirmado
+        if (signInError.message.includes('email not confirmed') || 
+            signInError.message.includes('Email not confirmed')) {
+          setErrorType('email_nao_confirmado')
+          setError('Por favor, confirme seu email antes de fazer login')
+        } else {
+          setErrorType('credenciais_invalidas')
+          setError('Email ou senha incorretos')
+        }
+        setLoading(false)
+        return
+      }
+
+      // Verificar se email foi confirmado
+      if (data.user && !data.user.email_confirmed_at) {
+        setErrorType('email_nao_confirmado')
+        setError('Por favor, confirme seu email antes de fazer login')
         setLoading(false)
         return
       }
@@ -51,8 +73,45 @@ export default function LoginPage() {
       
       router.refresh()
     } catch (err) {
+      setErrorType('erro_generico')
       setError('Erro ao fazer login. Tente novamente.')
       setLoading(false)
+    }
+  }
+
+  const handleResendConfirmation = async () => {
+    if (!email) {
+      setError('Por favor, informe seu email primeiro')
+      return
+    }
+
+    setResendingEmail(true)
+    setResendSuccess(false)
+    setError(null)
+
+    try {
+      const supabase = createClient()
+      const { error: resendError } = await supabase.auth.resend({
+        type: 'signup',
+        email: email,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
+        },
+      })
+
+      if (resendError) {
+        if (resendError.message.includes('rate limit')) {
+          setError('Muitas tentativas. Aguarde alguns minutos antes de tentar novamente.')
+        } else {
+          setError('Não foi possível reenviar o email. Tente novamente.')
+        }
+      } else {
+        setResendSuccess(true)
+      }
+    } catch (err) {
+      setError('Erro ao reenviar email. Tente novamente.')
+    } finally {
+      setResendingEmail(false)
     }
   }
 
@@ -92,7 +151,84 @@ export default function LoginPage() {
 
           {error && (
             <Alert className="mb-6 bg-red-50 border-red-200 text-red-800">
-              {error}
+              <div className="flex items-start gap-2">
+                <svg
+                  className="w-5 h-5 mt-0.5 flex-shrink-0"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+                <div className="flex-1">
+                  <p className="font-medium mb-1">{error}</p>
+                  {errorType === 'email_nao_confirmado' && (
+                    <div className="mt-3 space-y-2">
+                      <p className="text-sm text-red-700">
+                        Verifique sua caixa de entrada e pasta de spam.
+                      </p>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={handleResendConfirmation}
+                        disabled={resendingEmail}
+                        className="w-full border-[#1E73BE] text-[#1E73BE] hover:bg-[#1E73BE]/5 text-sm"
+                      >
+                        {resendingEmail ? (
+                          <div className="flex items-center gap-2">
+                            <LoadingSpinner size="sm" />
+                            <span>Reenviando...</span>
+                          </div>
+                        ) : (
+                          'Reenviar email de confirmação'
+                        )}
+                      </Button>
+                      <Link
+                        href={`/confirmar-email?email=${encodeURIComponent(email)}`}
+                        className="block text-center text-sm text-[#1E73BE] hover:underline"
+                      >
+                        Ir para página de confirmação →
+                      </Link>
+                    </div>
+                  )}
+                  {errorType === 'credenciais_invalidas' && (
+                    <p className="text-sm text-red-700 mt-1">
+                      Verifique se digitou corretamente. Se esqueceu sua senha, você pode{' '}
+                      <Link href="#" className="text-[#1E73BE] hover:underline font-medium">
+                        redefini-la
+                      </Link>
+                      .
+                    </p>
+                  )}
+                </div>
+              </div>
+            </Alert>
+          )}
+
+          {resendSuccess && (
+            <Alert className="mb-6 bg-green-50 border-green-200 text-green-800">
+              <div className="flex items-center gap-2">
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+                <span>Email reenviado com sucesso! Verifique sua caixa de entrada.</span>
+              </div>
             </Alert>
           )}
 
@@ -134,7 +270,14 @@ export default function LoginPage() {
               className="w-full h-11 bg-[#1E73BE] hover:bg-[#1557A0] text-white font-medium rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl"
               disabled={loading}
             >
-              {loading ? 'Entrando...' : 'Entrar'}
+              {loading ? (
+                <div className="flex items-center gap-2">
+                  <LoadingSpinner size="sm" variant="white" />
+                  <span>Entrando...</span>
+                </div>
+              ) : (
+                'Entrar'
+              )}
             </Button>
           </form>
 

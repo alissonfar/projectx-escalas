@@ -8,6 +8,16 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Alert } from '@/components/ui/alert'
+import { SuccessMessage } from '@/components/ui/success-message'
+import { LoadingSpinner } from '@/components/ui/loading-spinner'
+
+type ErrorType = 
+  | 'senhas_nao_coincidem'
+  | 'senha_fraca'
+  | 'nome_vazio'
+  | 'email_existente'
+  | 'erro_rede'
+  | 'erro_generico'
 
 export default function CadastroPage() {
   const router = useRouter()
@@ -16,25 +26,50 @@ export default function CadastroPage() {
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
+  const [errorType, setErrorType] = useState<ErrorType | null>(null)
   const [loading, setLoading] = useState(false)
+  const [success, setSuccess] = useState(false)
+
+  const getErrorMessage = (type: ErrorType): string => {
+    switch (type) {
+      case 'senhas_nao_coincidem':
+        return 'As senhas não coincidem'
+      case 'senha_fraca':
+        return 'A senha deve ter no mínimo 6 caracteres'
+      case 'nome_vazio':
+        return 'Por favor, informe seu nome completo'
+      case 'email_existente':
+        return 'Este email já está cadastrado'
+      case 'erro_rede':
+        return 'Não foi possível conectar. Verifique sua internet e tente novamente'
+      case 'erro_generico':
+      default:
+        return 'Algo deu errado. Por favor, tente novamente em alguns instantes'
+    }
+  }
 
   const handleCadastro = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
+    setErrorType(null)
+    setSuccess(false)
 
     // Validações
     if (password !== confirmPassword) {
-      setError('As senhas não coincidem')
+      setErrorType('senhas_nao_coincidem')
+      setError(getErrorMessage('senhas_nao_coincidem'))
       return
     }
 
     if (password.length < 6) {
-      setError('A senha deve ter no mínimo 6 caracteres')
+      setErrorType('senha_fraca')
+      setError(getErrorMessage('senha_fraca'))
       return
     }
 
     if (!nomeCompleto.trim()) {
-      setError('Por favor, informe seu nome completo')
+      setErrorType('nome_vazio')
+      setError(getErrorMessage('nome_vazio'))
       return
     }
 
@@ -48,6 +83,7 @@ export default function CadastroPage() {
         email,
         password,
         options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
           data: {
             nome_completo: nomeCompleto.trim(),
           },
@@ -55,22 +91,39 @@ export default function CadastroPage() {
       })
 
       if (signUpError) {
-        if (signUpError.message.includes('already registered')) {
-          setError('Este email já está cadastrado')
+        if (signUpError.message.includes('already registered') || 
+            signUpError.message.includes('already exists')) {
+          setErrorType('email_existente')
+          setError(getErrorMessage('email_existente'))
+        } else if (signUpError.message.includes('network') || 
+                   signUpError.message.includes('fetch')) {
+          setErrorType('erro_rede')
+          setError(getErrorMessage('erro_rede'))
         } else {
-          setError('Erro ao criar conta. Tente novamente.')
+          setErrorType('erro_generico')
+          setError(getErrorMessage('erro_generico'))
         }
         setLoading(false)
         return
       }
 
-      // Sucesso - redirecionar para criar organização
-      router.push('/selecionar-organizacao?novo=true')
-      router.refresh()
+      // Sucesso - mostrar mensagem e redirecionar
+      setSuccess(true)
+      setLoading(false)
+      
+      // Redirecionar após 3 segundos para página de confirmação
+      setTimeout(() => {
+        router.push(`/confirmar-email?email=${encodeURIComponent(email)}`)
+      }, 3000)
     } catch (err) {
-      setError('Erro ao criar conta. Tente novamente.')
+      setErrorType('erro_generico')
+      setError(getErrorMessage('erro_generico'))
       setLoading(false)
     }
+  }
+
+  const handleGoToLogin = () => {
+    router.push('/login')
   }
 
   return (
@@ -107,13 +160,61 @@ export default function CadastroPage() {
             Criar nova conta
           </h2>
 
-          {error && (
-            <Alert className="mb-6 bg-red-50 border-red-200 text-red-800">
-              {error}
-            </Alert>
-          )}
+          {success ? (
+            <SuccessMessage
+              title="Conta criada com sucesso! ✅"
+              description={`Enviamos um email de confirmação para ${email}. Por favor, verifique sua caixa de entrada e clique no link para ativar sua conta.`}
+              actionLabel="Entendi, continuar"
+              onAction={() => router.push(`/confirmar-email?email=${encodeURIComponent(email)}`)}
+            />
+          ) : (
+            <>
+              {error && (
+                <Alert className="mb-6 bg-red-50 border-red-200 text-red-800">
+                  <div className="flex items-start gap-2">
+                    <svg
+                      className="w-5 h-5 mt-0.5 flex-shrink-0"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                    <div className="flex-1">
+                      <p className="font-medium mb-1">{error}</p>
+                      {errorType === 'email_existente' && (
+                        <div className="mt-2">
+                          <Link
+                            href="/login"
+                            className="text-sm text-[#1E73BE] hover:underline font-medium"
+                          >
+                            Fazer login →
+                          </Link>
+                        </div>
+                      )}
+                      {errorType === 'senhas_nao_coincidem' && (
+                        <p className="text-sm text-red-700 mt-1">
+                          Verifique se as duas senhas são iguais.
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </Alert>
+              )}
 
-          <form onSubmit={handleCadastro} className="space-y-5">
+              {loading && (
+                <div className="mb-6 flex items-center justify-center gap-3 py-4">
+                  <LoadingSpinner size="md" />
+                  <span className="text-gray-600">Aguarde, estamos criando sua conta...</span>
+                </div>
+              )}
+
+              <form onSubmit={handleCadastro} className="space-y-5">
             <div className="space-y-2">
               <Label htmlFor="nomeCompleto" className="text-gray-700 font-medium">
                 Nome Completo
@@ -180,26 +281,35 @@ export default function CadastroPage() {
               />
             </div>
 
-            <Button
-              type="submit"
-              className="w-full h-11 bg-[#1E73BE] hover:bg-[#1557A0] text-white font-medium rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl"
-              disabled={loading}
-            >
-              {loading ? 'Criando conta...' : 'Criar conta'}
-            </Button>
-          </form>
+                <Button
+                  type="submit"
+                  className="w-full h-11 bg-[#1E73BE] hover:bg-[#1557A0] text-white font-medium rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl"
+                  disabled={loading}
+                >
+                  {loading ? (
+                    <div className="flex items-center gap-2">
+                      <LoadingSpinner size="sm" variant="white" />
+                      <span>Criando sua conta...</span>
+                    </div>
+                  ) : (
+                    'Criar conta'
+                  )}
+                </Button>
+              </form>
 
-          <div className="mt-6 text-center">
-            <p className="text-sm text-gray-600">
-              Já tem uma conta?{' '}
-              <Link
-                href="/login"
-                className="text-[#1E73BE] hover:text-[#1557A0] font-medium hover:underline transition-colors"
-              >
-                Faça login
-              </Link>
-            </p>
-          </div>
+              <div className="mt-6 text-center">
+                <p className="text-sm text-gray-600">
+                  Já tem uma conta?{' '}
+                  <Link
+                    href="/login"
+                    className="text-[#1E73BE] hover:text-[#1557A0] font-medium hover:underline transition-colors"
+                  >
+                    Faça login
+                  </Link>
+                </p>
+              </div>
+            </>
+          )}
         </div>
 
         {/* Footer */}
