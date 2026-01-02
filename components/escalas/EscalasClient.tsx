@@ -209,7 +209,9 @@ export function EscalasClient({ setoresIniciais, mesInicial, anoInicial }: Escal
       
       const alocacaoData = {
         ...data,
-        periodo_id: periodoId
+        periodo_id: periodoId,
+        // Garantir que turno seja do tipo correto
+        turno: (data.turno === '' || !data.turno) ? null : (data.turno as 'manha' | 'tarde' | 'noite' | 'integral')
       }
       
       let result

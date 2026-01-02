@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import DashboardLayout from '@/components/dashboard/DashboardLayout'
+import type { Organizacao } from '@/types/database'
 
 export default async function DashboardLayoutWrapper({
   children,
@@ -35,11 +36,18 @@ export default async function DashboardLayoutWrapper({
     .eq('ativo', true)
     .order('nome')
 
+  // Mapear para garantir compatibilidade de tipos (ativo e created_at sempre presentes)
+  const organizacoesMapeadas: Organizacao[] = (organizacoes || []).map(org => ({
+    ...org,
+    ativo: org.ativo ?? true, // Garantir que ativo seja sempre boolean
+    created_at: org.created_at ?? new Date().toISOString() // Garantir que created_at seja sempre string
+  }))
+
   return (
     <DashboardLayout
       user={user}
       profile={profile}
-      organizacoes={organizacoes || []}
+      organizacoes={organizacoesMapeadas}
     >
       {children}
     </DashboardLayout>

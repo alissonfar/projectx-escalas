@@ -16,6 +16,13 @@ import { cn } from '@/lib/utils'
 import { formatBrasiliaDateTime } from '@/lib/utils/datetime'
 import type { Escala } from '@/types/database'
 
+// Tipo auxiliar para conflitos (com propriedades necessárias para exibição)
+type ConflitoEscala = {
+  id: string
+  data_inicio: string
+  data_fim: string
+}
+
 interface EscalaFormProps {
   open: boolean
   onClose: () => void
@@ -37,7 +44,7 @@ export function EscalaForm({
 }: EscalaFormProps) {
   const [setorOptions, setSetorOptions] = useState<{ value: string; label: string }[]>([])
   const [profissionalOptions, setProfissionalOptions] = useState<{ value: string; label: string }[]>([])
-  const [conflitos, setConflitos] = useState<Escala[]>([])
+  const [conflitos, setConflitos] = useState<ConflitoEscala[]>([])
   const [verificandoConflitos, setVerificandoConflitos] = useState(false)
 
   useEffect(() => {
@@ -81,7 +88,15 @@ export function EscalaForm({
     if (profissionalId && dataInicio && dataFim) {
       setVerificandoConflitos(true)
       verificarConflitos(profissionalId, dataInicio, dataFim, initialData?.id)
-        .then(setConflitos)
+        .then((escalas) => {
+          // Mapear para o tipo ConflitoEscala (extrair apenas propriedades necessárias)
+          const conflitosMapeados: ConflitoEscala[] = escalas.map((e: any) => ({
+            id: e.id,
+            data_inicio: e.data_inicio,
+            data_fim: e.data_fim
+          }))
+          setConflitos(conflitosMapeados)
+        })
         .finally(() => setVerificandoConflitos(false))
     } else {
       setConflitos([])

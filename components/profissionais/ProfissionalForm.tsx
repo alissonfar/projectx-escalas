@@ -94,10 +94,11 @@ export function ProfissionalForm({
   useEffect(() => {
     if (profissaoAtual && camposProfissao.length > 0) {
       camposProfissao.forEach(campo => {
-        const valorAtual = watch(campo.id as keyof ProfissionalFormData)
+        const campoId = campo.id as string as keyof ProfissionalFormData
+        const valorAtual = watch(campoId as string)
         if (valorAtual && !initialData) {
           // Só limpa se não for edição
-          setValue(campo.id as keyof ProfissionalFormData, '' as any)
+          setValue(campoId as string, '' as any)
         }
       })
     }
@@ -297,8 +298,8 @@ export function ProfissionalForm({
             </h3>
             <div className="space-y-4">
               {camposProfissao.map((campo) => {
-                const campoId = campo.id as keyof ProfissionalFormData
-                const valorAtual = watch(campoId)
+                const campoId = campo.id as string as keyof ProfissionalFormData
+                const valorAtual = watch(campoId as string)
                 const erro = errors[campoId]
 
                 if (campo.tipo === 'select') {
@@ -309,7 +310,7 @@ export function ProfissionalForm({
                         required={campo.obrigatorio}
                         options={campo.opcoes || []}
                         value={valorAtual as string || ''}
-                        onChange={(value) => setValue(campoId, value as any)}
+                        onChange={(value) => setValue(campoId as string, value as any)}
                         error={erro?.message}
                         disabled={loading}
                       />
@@ -331,7 +332,7 @@ export function ProfissionalForm({
                       )}
                     </Label>
                     <Controller
-                      name={campoId}
+                      name={campoId as string}
                       control={control}
                       render={({ field: controllerField }) => (
                         <>

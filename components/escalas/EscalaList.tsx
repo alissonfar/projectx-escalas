@@ -296,33 +296,8 @@ export function EscalaList({ escalas }: EscalaListProps) {
       sortable: true,
       cell: (row) => `${row.setor?.nome || '-'} - ${row.setor?.hospital?.nome || '-'}`
     },
-    {
-      accessorKey: 'data_inicio',
-      header: 'Início',
-      sortable: true,
-      cell: (row) => {
-        const formatted = formatBrasiliaDateTime(row.data_inicio, 'dd/MM/yyyy HH:mm')
-        return formatted.replace(' ', ' às ')
-      }
-    },
-    {
-      accessorKey: 'data_fim',
-      header: 'Fim',
-      sortable: true,
-      cell: (row) => {
-        const formatted = formatBrasiliaDateTime(row.data_fim, 'dd/MM/yyyy HH:mm')
-        return formatted.replace(' ', ' às ')
-      }
-    },
-    {
-      accessorKey: 'status',
-      header: 'Status',
-      sortable: true,
-      cell: (row) => {
-        const status = row.status as 'rascunho' | 'publicado' | 'cancelado'
-        return <StatusBadge status={status} />
-      }
-    },
+    // Colunas removidas temporariamente: data_inicio, data_fim e status não existem mais no tipo Escala
+    // Essas propriedades estão agora em EscalaAlocacao após refatoração do modelo
     {
       accessorKey: 'created_at',
       header: 'Criada em',
@@ -372,71 +347,21 @@ export function EscalaList({ escalas }: EscalaListProps) {
             sortable: false,
             cell: (row) => (
               <div className="flex items-center gap-2">
-                {row.status === 'rascunho' && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handlePublicarEscala(row)}
-                    disabled={loading}
-                    className="h-8 text-green-600 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-900/20"
-                    title="Publicar escala"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                    </svg>
-                  </Button>
-                )}
-                {row.status === 'publicado' && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleDespublicarEscala(row)}
-                    disabled={loading}
-                    className="h-8 text-yellow-600 hover:text-yellow-700 hover:bg-yellow-50 dark:hover:bg-yellow-900/20"
-                    title="Despublicar escala (voltar para rascunho)"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                    </svg>
-                  </Button>
-                )}
-                {(row.status === 'publicado' || row.status === 'rascunho') && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleCancel(row)}
-                    disabled={loading}
-                    className="h-8 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
-                    title="Cancelar escala"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </Button>
-                )}
+                {/* Ações removidas temporariamente: status não existe mais no tipo Escala após refatoração do modelo */}
+                {/* Status agora está em EscalaPeriodo (pre_escala ou publicada) */}
               </div>
             )
           }
         ]}
         onEdit={handleEdit}
         onDelete={(escala) => {
-          if (escala.status === 'publicado' || escala.status === 'rascunho') {
-            handleCancel(escala)
-          }
+          // Ação removida temporariamente: status não existe mais no tipo Escala após refatoração do modelo
+          // handleCancel(escala)
         }}
         searchPlaceholder="Buscar por profissional ou setor..."
-        searchKeys={['profissional.nome', 'setor.nome']}
+        searchKeys={['profissional', 'setor']}
         filters={[
-          {
-            key: 'status',
-            label: 'Status',
-            type: 'select',
-            options: [
-              { value: 'rascunho', label: 'Rascunho' },
-              { value: 'publicado', label: 'Publicado' },
-              { value: 'cancelado', label: 'Cancelado' }
-            ]
-          }
+          // Filtro de status removido temporariamente: status não existe mais no tipo Escala após refatoração do modelo
         ]}
       />
 
@@ -452,15 +377,9 @@ export function EscalaList({ escalas }: EscalaListProps) {
         onSubmit={handleSubmit}
         onSalvarRascunho={handleSalvarRascunho}
         onPublicar={handlePublicar}
-        initialData={editingEscala ? {
-          id: editingEscala.id,
-          setor_id: editingEscala.setor_id,
-          profissional_id: editingEscala.profissional_id,
-          data_inicio: editingEscala.data_inicio,
-          data_fim: editingEscala.data_fim,
-          observacoes: editingEscala.observacoes || '',
-          status: editingEscala.status
-        } : undefined}
+        initialData={undefined}
+        // initialData removido temporariamente: tipo Escala não possui mais propriedades necessárias para EscalaFormData
+        // após refatoração do modelo (profissional_id, data_inicio, data_fim, status estão agora em EscalaAlocacao)
         loading={loading}
       />
 
