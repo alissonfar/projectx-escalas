@@ -104,8 +104,8 @@ const EmailConfirmationCard = React.forwardRef<HTMLDivElement, EmailConfirmation
             </p>
             <ol className="space-y-2 text-sm text-gray-700 list-decimal list-inside">
               <li>Abra sua caixa de entrada</li>
-              <li>Procure por um email de <strong>"Plantão Flow"</strong></li>
-              <li>Clique no botão <strong>"Confirmar email"</strong> dentro do email</li>
+              <li>Procure por um email de <strong>&quot;Plantão Flow&quot;</strong></li>
+              <li>Clique no botão <strong>&quot;Confirmar email&quot;</strong> dentro do email</li>
               <li>Você será redirecionado automaticamente</li>
             </ol>
           </div>
