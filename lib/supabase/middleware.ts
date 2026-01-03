@@ -1,27 +1,55 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
+// Validação de variáveis de ambiente
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+
+if (!supabaseUrl || !supabaseKey) {
+  throw new Error(
+    'Missing Supabase environment variables. ' +
+    'Please set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY'
+  )
+}
+
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
     request,
   })
 
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    supabaseUrl,
+    supabaseKey,
     {
       cookies: {
         getAll() {
           return request.cookies.getAll()
         },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) => request.cookies.set(name, value))
-          supabaseResponse = NextResponse.next({
-            request,
+        setAll(cookiesToSet: Array<{ name: string; value: string; options?: any }>) {
+          cookiesToSet.forEach(({ name, value, options }) => {
+            // Aplicar configurações de segurança para produção
+            const isProduction = process.env.NODE_ENV === 'production'
+            const secureOptions: {
+              secure?: boolean
+              sameSite?: 'lax' | 'strict' | 'none'
+              path?: string
+              httpOnly?: boolean
+              maxAge?: number
+            } = {
+              ...options,
+              secure: isProduction, // Apenas HTTPS em produção
+              sameSite: 'lax', // Proteção CSRF
+              path: '/',
+              // HttpOnly será aplicado pelo Supabase quando necessário
+            }
+            
+            request.cookies.set(name, value)
+            
+            supabaseResponse = NextResponse.next({
+              request,
+            })
+            supabaseResponse.cookies.set(name, value, secureOptions)
           })
-          cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
-          )
         },
       },
     }
@@ -33,7 +61,29 @@ export async function updateSession(request: NextRequest) {
 
   const {
     data: { user },
+    error: userError,
   } = await supabase.auth.getUser()
+
+  // Tratamento de erro de autenticação
+  // Se houver erro de token (JWT expirado/inválido), tentar refresh
+  if (userError) {
+    // Log do erro para monitoramento (sem dados sensíveis)
+    console.error('[Middleware] Auth error:', userError.message)
+    
+    // Se for erro de JWT, o Supabase SSR já tentou refresh automaticamente
+    // Se ainda assim falhou, verificar se é rota pública
+    const publicRoutes = ['/login', '/cadastro', '/auth', '/confirmar-email']
+    const isPublicRoute = publicRoutes.some(route => 
+      request.nextUrl.pathname.startsWith(route)
+    )
+    
+    // Se não é rota pública e não há usuário, redirecionar para login
+    if (!isPublicRoute && !user) {
+      const url = request.nextUrl.clone()
+      url.pathname = '/login'
+      return NextResponse.redirect(url)
+    }
+  }
 
   // Rotas públicas que não precisam de autenticação
   const publicRoutes = ['/login', '/cadastro', '/auth', '/confirmar-email']
@@ -42,6 +92,7 @@ export async function updateSession(request: NextRequest) {
   )
 
   // Se não tem usuário e não é rota pública, redireciona para login
+  // (já tratado acima se houver erro, mas manter para casos sem erro)
   if (!user && !isPublicRoute) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'

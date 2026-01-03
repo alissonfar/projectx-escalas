@@ -111,8 +111,8 @@ function SelecionarOrganizacaoContent() {
       }
 
       // Sucesso - redirecionar para dashboard
-      router.push('/dashboard')
-      router.refresh()
+      // Usar window.location.href para garantir sincronização de cookies
+      window.location.href = '/dashboard'
     } catch (err) {
       setError('Erro ao criar organização')
       setSalvando(false)
@@ -145,8 +145,8 @@ function SelecionarOrganizacaoContent() {
       }
 
       // Sucesso - redirecionar para dashboard
-      router.push('/dashboard')
-      router.refresh()
+      // Usar window.location.href para garantir sincronização de cookies
+      window.location.href = '/dashboard'
     } catch (err) {
       setError('Erro ao selecionar organização')
       setSalvando(false)

@@ -46,10 +46,26 @@ export default function DashboardLayout({
   }
 
   const handleLogout = async () => {
-    const supabase = createClient()
-    await supabase.auth.signOut()
-    router.push('/login')
-    router.refresh()
+    try {
+      const supabase = createClient()
+      
+      // Fazer logout no cliente
+      const { error } = await supabase.auth.signOut()
+      
+      if (error) {
+        console.error('Erro ao fazer logout:', error)
+        // Mesmo com erro, redirecionar para login
+        // O AuthProvider vai lidar com a limpeza
+      }
+      
+      // Usar window.location para garantir limpeza completa de cookies
+      // e evitar race conditions
+      window.location.href = '/login'
+    } catch (err) {
+      console.error('Erro inesperado ao fazer logout:', err)
+      // Mesmo com erro, redirecionar para login
+      window.location.href = '/login'
+    }
   }
 
   const handleChangeOrg = async (orgId: string) => {

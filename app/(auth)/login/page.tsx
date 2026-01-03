@@ -41,9 +41,14 @@ export default function LoginPage() {
             signInError.message.includes('Email not confirmed')) {
           setErrorType('email_nao_confirmado')
           setError('Por favor, confirme seu email antes de fazer login')
-        } else {
+        } else if (signInError.message.includes('Invalid login credentials') ||
+                   signInError.message.includes('invalid')) {
           setErrorType('credenciais_invalidas')
           setError('Email ou senha incorretos')
+        } else {
+          // Erro de rede ou outro erro
+          setErrorType('erro_generico')
+          setError('Erro ao fazer login. Verifique sua conexão e tente novamente.')
         }
         setLoading(false)
         return
@@ -57,23 +62,46 @@ export default function LoginPage() {
         return
       }
 
+      // VERIFICAÇÃO CRÍTICA: Aguardar sincronização da sessão
+      // Verificar se a sessão foi realmente criada e persistida
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+      
+      if (sessionError || !session) {
+        setErrorType('erro_generico')
+        setError('Erro ao criar sessão. Tente novamente.')
+        setLoading(false)
+        return
+      }
+
+      // Aguardar um tick para garantir que cookies foram sincronizados
+      // Isso é importante para evitar race conditions com o middleware
+      await new Promise(resolve => setTimeout(resolve, 100))
+
       // Verificar se usuário tem organização ativa
-      const { data: profile } = await supabase
-        .from('profiles')
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles' as any)
         .select('organizacao_ativa_id')
         .eq('id', data.user.id)
         .single()
 
-      if (!(profile as any)?.organizacao_ativa_id) {
-        // Redirecionar para seleção de organização
-        router.push('/selecionar-organizacao')
-      } else {
-        // Ir direto para dashboard
-        router.push('/dashboard')
+      if (profileError) {
+        console.error('Erro ao buscar perfil:', profileError)
+        setErrorType('erro_generico')
+        setError('Erro ao carregar dados do usuário. Tente novamente.')
+        setLoading(false)
+        return
       }
-      
-      router.refresh()
+
+      // Usar window.location.href ao invés de router.push() para garantir
+      // que a navegação aconteça com cookies sincronizados
+      // O middleware vai lidar com a verificação de sessão
+      if (!(profile as any)?.organizacao_ativa_id) {
+        window.location.href = '/selecionar-organizacao'
+      } else {
+        window.location.href = '/dashboard'
+      }
     } catch (err) {
+      console.error('Erro inesperado no login:', err)
       setErrorType('erro_generico')
       setError('Erro ao fazer login. Tente novamente.')
       setLoading(false)
