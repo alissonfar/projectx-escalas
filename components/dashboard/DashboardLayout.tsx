@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { Logo } from '@/components/ui/logo'
 import type { User } from '@supabase/supabase-js'
 import type { Organizacao } from '@/types/database'
 
@@ -143,14 +144,9 @@ export default function DashboardLayout({
         <div className="h-full px-4 flex items-center justify-between">
           {/* Logo */}
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center">
-              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
+            <div className="w-[180px] sm:w-[200px]">
+              <Logo variant="dark" />
             </div>
-            <h1 className="text-white font-bold text-lg tracking-wider">
-              ESCALA FISIO
-            </h1>
           </div>
 
           {/* Actions - Right Side */}
